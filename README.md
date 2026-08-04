@@ -60,3 +60,5 @@ that URL in `src/routes/__root.tsx`, `src/routes/privacy.tsx`,
 `src/routes/terms.tsx`, `public/robots.txt`, and `public/sitemap.xml`, then
 redeploy. Do not claim Search Console ownership until the owner completes
 Google verification.
+
+<!-- Deployment preparation is configured in vercel.json. -->

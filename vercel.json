@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "framework": null,
+  "installCommand": "bun install --frozen-lockfile",
+  "buildCommand": "bash ./build-vercel.sh",
+  "outputDirectory": ".vercel/output"
+}

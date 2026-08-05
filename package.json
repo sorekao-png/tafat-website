@@ -7,6 +7,7 @@
     "dev": "vite dev",
     "build": "vite build",
     "start": "bun run serve.ts",
+    "test": "bun test",
     "publish": "bash ./publish.sh",
     "go-live": "bash ./go-live.sh",
     "format": "prettier --write ."

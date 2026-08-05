@@ -30,7 +30,7 @@ export const Route = createRootRoute({
       { property: "og:site_name", content: "Tafat" },
       { property: "og:title", content: "Tafat — Find something good" },
       { property: "og:description", content: "Discover thoughtfully curated digital tools and wellbeing resources." },
-      { property: "og:url", content: "https://466c73967ef3825450db11330538b29c.ctonew.app/" },
+      { property: "og:url", content: "https://tafat.co.uk/" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Tafat — Find something good" },
       { name: "twitter:description", content: "Discover thoughtfully curated digital tools and wellbeing resources." },
@@ -39,7 +39,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "canonical", href: "https://466c73967ef3825450db11330538b29c.ctonew.app/" },
+      { rel: "canonical", href: "https://tafat.co.uk/" },
     ],
     scripts: [{
       type: "application/ld+json",
@@ -47,7 +47,7 @@ export const Route = createRootRoute({
         "@context": "https://schema.org",
         "@type": "WebSite",
         name: "Tafat",
-        url: "https://466c73967ef3825450db11330538b29c.ctonew.app/",
+        url: "https://tafat.co.uk/",
         description: "Discover thoughtfully curated digital tools and wellbeing resources.",
       }),
     }],

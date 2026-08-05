@@ -5,7 +5,7 @@ export const Route = createFileRoute("/terms")({
       { title: "Terms of use — Tafat" },
       { name: "description", content: "Read the Tafat terms for using this affiliate product discovery catalog and its third-party links." },
     ],
-    links: [{ rel: "canonical", href: "https://466c73967ef3825450db11330538b29c.ctonew.app/terms" }],
+    links: [{ rel: "canonical", href: "https://tafat.co.uk/terms" }],
   }),
   component: Terms,
 });

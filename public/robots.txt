@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://466c73967ef3825450db11330538b29c.ctonew.app/sitemap.xml
+Sitemap: https://tafat.co.uk/sitemap.xml

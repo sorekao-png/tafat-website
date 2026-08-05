@@ -13,7 +13,7 @@ export const Route = createFileRoute("/privacy")({
     links: [
       {
         rel: "canonical",
-        href: "https://466c73967ef3825450db11330538b29c.ctonew.app/privacy",
+        href: "https://tafat.co.uk/privacy",
       },
     ],
   }),

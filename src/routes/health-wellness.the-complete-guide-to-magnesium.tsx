@@ -138,7 +138,7 @@ function Article() {
     <div className="site-shell">
       <header className="nav wrap">
         <a className="brand" href="/" aria-label="Tafat home"><span className="brand-mark">t</span><span>tafat</span></a>
-        <nav><a href="/#discover">Discover</a><a href="/health-wellness" aria-current="page">Health &amp; Wellness</a><a href="/#about">Our approach</a></nav>
+        <nav><a href="/#discover">Discover</a><a href="/health-wellness" aria-current="page">Health &amp; Wellness</a><a href="/#how-we-review">Our approach</a></nav>
         <a className="nav-pill" href="/#stay-in-loop">Sign in / join</a>
       </header>
       <main>

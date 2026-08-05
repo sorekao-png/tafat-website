@@ -1,18 +1,30 @@
 declare global {
-  interface Window { dataLayer?: unknown[]; }
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
 }
 
 export type ConsentState = "unknown" | "denied" | "analytics";
 
 /** Public, non-secret IDs only. Leave unset until the owner creates each property. */
+const publicEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env || {};
 export const measurementConfig = {
-  gtmId: import.meta.env.VITE_GTM_ID?.trim() || "",
-  ga4MeasurementId: import.meta.env.VITE_GA4_MEASUREMENT_ID?.trim() || "",
-  clarityProjectId: import.meta.env.VITE_CLARITY_PROJECT_ID?.trim() || "",
-  bingVerification: import.meta.env.VITE_BING_VERIFICATION?.trim() || "",
+  gtmId: publicEnv.VITE_GTM_ID?.trim() || "",
+  ga4MeasurementId: publicEnv.VITE_GA4_MEASUREMENT_ID?.trim() || "",
+  clarityProjectId: publicEnv.VITE_CLARITY_PROJECT_ID?.trim() || "",
+  bingVerification: publicEnv.VITE_BING_VERIFICATION?.trim() || "",
 };
 
 export const CONSENT_KEY = "tafat-consent-v1";
+
+export const consentDefaults = {
+  analytics_storage: "denied",
+  ad_storage: "denied",
+  ad_user_data: "denied",
+  ad_personalization: "denied",
+  wait_for_update: 500,
+} as const;
 
 export function readConsent(): ConsentState {
   if (typeof window === "undefined") return "unknown";
@@ -23,4 +35,22 @@ export function readConsent(): ConsentState {
 export function writeConsent(value: Exclude<ConsentState, "unknown">) {
   window.localStorage.setItem(CONSENT_KEY, value);
   window.dispatchEvent(new CustomEvent("tafat-consent", { detail: value }));
+}
+
+/**
+ * Install the Consent Mode default before loading any Google tag. Keeping this
+ * small and side-effect-free until called makes the ordering explicit and testable.
+ */
+export function initializeGoogleConsent() {
+  if (typeof window === "undefined") return;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || ((...args: unknown[]) => window.dataLayer!.push(args));
+  window.gtag("consent", "default", consentDefaults);
+}
+
+export function updateGoogleConsent(state: Exclude<ConsentState, "unknown">) {
+  if (!window.gtag) initializeGoogleConsent();
+  window.gtag?.("consent", "update", {
+    analytics_storage: state === "analytics" ? "granted" : "denied",
+  });
 }

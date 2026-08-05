@@ -8,7 +8,12 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 
 import appCss from "~/styles/app.css?url";
-import { measurementConfig, readConsent } from "~/lib/measurement";
+import {
+  initializeGoogleConsent,
+  measurementConfig,
+  readConsent,
+  updateGoogleConsent,
+} from "~/lib/measurement";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -58,14 +63,21 @@ function RootComponent() {
 
 function ConsentAwareMeasurement() {
   useEffect(() => {
+    // Consent Mode defaults must be queued before any Google tag can load.
+    initializeGoogleConsent();
     let loaded = false;
     const load = () => {
-      if (loaded || readConsent() !== "analytics") return;
+      const consent = readConsent();
+      if (consent !== "analytics") {
+        updateGoogleConsent("denied");
+        return;
+      }
+      updateGoogleConsent("analytics");
+      if (loaded) return;
       loaded = true;
       const { gtmId, ga4MeasurementId, clarityProjectId } = measurementConfig;
       if (gtmId) {
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+        window.dataLayer!.push({ "gtm.start": Date.now(), event: "gtm.js" });
         const script = document.createElement("script");
         script.async = true;
         script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtmId)}`;
@@ -76,9 +88,8 @@ function ConsentAwareMeasurement() {
         script.async = true;
         script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4MeasurementId)}`;
         document.head.appendChild(script);
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push(["js", new Date()]);
-        window.dataLayer.push(["config", ga4MeasurementId, { anonymize_ip: true }]);
+        window.gtag!("js", new Date());
+        window.gtag!("config", ga4MeasurementId, { anonymize_ip: true, send_page_view: true });
       }
       if (clarityProjectId) {
         const script = document.createElement("script");

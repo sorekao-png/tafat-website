@@ -3,13 +3,15 @@ import { createFileRoute } from "@tanstack/react-router";
 const description =
   "Explore thoughtfully selected wellness guides, vitamins, sleep resources, hydration products, gut-health information, and practical recommendations from TAFAT.";
 
+const GUIDE_URL = "/health-wellness/the-complete-guide-to-magnesium";
+
 const categories = [
-  ["Vitamins & Minerals", "Everyday information to help you compare options with care.", "✦"],
-  ["Sleep & Rest", "Gentle ideas and resources for building a more restful routine.", "☾"],
-  ["Gut Health", "Practical reading and recommendations for informed choices.", "◌"],
-  ["Hydration & Electrolytes", "Explore hydration tools and straightforward guidance.", "◒"],
-  ["Healthy Movement", "Approachable resources for adding movement to real life.", "↗"],
-  ["General Wellness", "Thoughtful wellbeing finds for your everyday routine.", "✧"],
+  ["Vitamins & Minerals", "Everyday information to help you compare options with care.", "✦", GUIDE_URL],
+  ["Sleep & Rest", "Gentle ideas and resources for building a more restful routine.", "☾", "#coming-soon"],
+  ["Gut Health", "Practical reading and recommendations for informed choices.", "◌", "#coming-soon"],
+  ["Hydration & Electrolytes", "Explore hydration tools and straightforward guidance.", "◒", "#coming-soon"],
+  ["Healthy Movement", "Approachable resources for adding movement to real life.", "↗", "#coming-soon"],
+  ["General Wellness", "Thoughtful wellbeing finds for your everyday routine.", "✧", "#coming-soon"],
 ] as const;
 
 export const Route = createFileRoute("/health-wellness")({
@@ -64,7 +66,16 @@ function HealthWellness() {
         <section className="category-section wrap" aria-labelledby="categories-heading">
           <div className="section-heading"><div><p className="eyebrow">Find your focus</p><h2 id="categories-heading">Explore wellness topics</h2></div></div>
           <div className="category-grid">
-            {categories.map(([name, copy, symbol]) => <a className="category-card" href="#coming-soon" key={name}><span className="category-symbol" aria-hidden="true">{symbol}</span><span><h3>{name}</h3><p>{copy}</p></span><span className="category-arrow" aria-hidden="true">↗</span></a>)}
+            {categories.map(([name, copy, symbol, href]) => <a className="category-card" href={href} key={name}><span className="category-symbol" aria-hidden="true">{symbol}</span><span><h3>{name}</h3><p>{copy}</p></span><span className="category-arrow" aria-hidden="true">↗</span></a>)}
+          </div>
+          <div className="featured-guide" aria-labelledby="featured-guide-heading">
+            <div className="featured-guide-copy">
+              <p className="eyebrow">Featured guide · Vitamins &amp; Minerals</p>
+              <h3 id="featured-guide-heading">The Complete Guide to Magnesium</h3>
+              <p>What magnesium is, why it matters, how much you need, food sources, supplement forms, label reading, health claims, safety and interactions — in one evidence-based guide.</p>
+              <a className="primary-button" href={GUIDE_URL}>Read the guide</a>
+            </div>
+            <span className="featured-guide-badge" aria-hidden="true">✦</span>
           </div>
         </section>
         <section className="selected-section" id="coming-soon" aria-labelledby="selected-heading"><div className="wrap"><p className="eyebrow">Coming soon</p><h2 id="selected-heading">Thoughtfully selected</h2><p className="selected-copy">We’re making space for future product cards and educational guides, selected with the same clear, useful approach you expect from TAFAT.</p><div className="future-grid"><div>Product recommendations</div><div>Educational guides</div><div>Practical resources</div></div></div></section>

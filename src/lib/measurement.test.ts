@@ -3,6 +3,7 @@ import {
   consentDefaults,
   initializeGoogleConsent,
   loadGoogleTagManager,
+  loadMicrosoftClarity,
   runGa4Onload,
   sendGooglePageView,
   updateGoogleConsent,
@@ -110,5 +111,25 @@ describe("Google Tag Manager consent loader", () => {
     expect(dataLayer[0]).toMatchObject({ event: "gtm.js" });
     expect(appended).toHaveLength(1);
     expect(appended[0]._src).toContain("GTM-test%20%2F%20unsafe");
+  });
+});
+
+describe("Microsoft Clarity consent loader", () => {
+  test("does not load an unsafe project ID", () => {
+    const appended: unknown[] = [];
+    globalThis.window = {} as unknown as Window & typeof globalThis;
+    globalThis.document = { querySelector: () => null, createElement: () => ({ dataset: {}, set src(value: string) { this._src = value; } }), head: { appendChild: (node: unknown) => appended.push(node) } } as unknown as Document;
+    expect(loadMicrosoftClarity("bad id/with spaces")).toBe(false);
+    expect(appended).toHaveLength(0);
+  });
+
+  test("loads the owner project exactly once after opt-in", () => {
+    const appended: any[] = [];
+    globalThis.window = {} as unknown as Window & typeof globalThis;
+    globalThis.document = { querySelector: () => null, createElement: () => ({ dataset: {}, set src(value: string) { this._src = value; }, set async(value: boolean) {} }), head: { appendChild: (node: unknown) => appended.push(node) } } as unknown as Document;
+    expect(loadMicrosoftClarity("xxk6k7g26z")).toBe(true);
+    expect(loadMicrosoftClarity("xxk6k7g26z")).toBe(false);
+    expect(appended).toHaveLength(1);
+    expect(appended[0]._src).toBe("https://www.clarity.ms/tag/xxk6k7g26z");
   });
 });

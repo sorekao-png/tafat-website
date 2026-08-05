@@ -4,6 +4,7 @@ declare global {
     gtag?: (...args: unknown[]) => void;
     __tafatGa4Runtime?: { order: string[]; loaded: boolean };
     __tafatGtmLoaded?: boolean;
+    __tafatClarityLoaded?: boolean;
   }
 }
 
@@ -86,6 +87,23 @@ export function loadGoogleTagManager(containerId: string): boolean {
   script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(containerId)}`;
   document.head.appendChild(script);
   window.__tafatGtmLoaded = true;
+  return true;
+}
+
+/** Load Microsoft Clarity only after optional analytics consent, once per page. */
+export function loadMicrosoftClarity(projectId: string): boolean {
+  if (typeof window === "undefined" || !/^[A-Za-z0-9_-]+$/.test(projectId) || window.__tafatClarityLoaded) return false;
+  const existing = document.querySelector('script[data-tafat-clarity="true"]');
+  if (existing) {
+    window.__tafatClarityLoaded = true;
+    return false;
+  }
+  const script = document.createElement("script");
+  script.async = true;
+  script.dataset.tafatClarity = "true";
+  script.src = `https://www.clarity.ms/tag/${encodeURIComponent(projectId)}`;
+  document.head.appendChild(script);
+  window.__tafatClarityLoaded = true;
   return true;
 }
 

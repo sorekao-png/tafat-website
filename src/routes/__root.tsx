@@ -12,7 +12,8 @@ import {
   initializeGoogleConsent,
   measurementConfig,
   readConsent,
-  sendGooglePageView,
+  recordGa4Runtime,
+  runGa4Onload,
   updateGoogleConsent,
 } from "~/lib/measurement";
 
@@ -88,10 +89,9 @@ function ConsentAwareMeasurement() {
         const script = document.createElement("script");
         script.async = true;
         script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4MeasurementId)}`;
+        script.onload = () => runGa4Onload(ga4MeasurementId);
+        script.onerror = () => recordGa4Runtime("GA4 script error");
         document.head.appendChild(script);
-        window.gtag!("js", new Date());
-        window.gtag!("config", ga4MeasurementId, { anonymize_ip: true, send_page_view: false });
-        sendGooglePageView(ga4MeasurementId);
       }
       if (clarityProjectId) {
         const script = document.createElement("script");

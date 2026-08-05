@@ -12,6 +12,7 @@ import {
   initializeGoogleConsent,
   measurementConfig,
   readConsent,
+  sendGooglePageView,
   updateGoogleConsent,
 } from "~/lib/measurement";
 
@@ -89,7 +90,8 @@ function ConsentAwareMeasurement() {
         script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4MeasurementId)}`;
         document.head.appendChild(script);
         window.gtag!("js", new Date());
-        window.gtag!("config", ga4MeasurementId, { anonymize_ip: true, send_page_view: true });
+        window.gtag!("config", ga4MeasurementId, { anonymize_ip: true, send_page_view: false });
+        sendGooglePageView(ga4MeasurementId);
       }
       if (clarityProjectId) {
         const script = document.createElement("script");

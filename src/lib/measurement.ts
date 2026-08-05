@@ -54,3 +54,13 @@ export function updateGoogleConsent(state: Exclude<ConsentState, "unknown">) {
     analytics_storage: state === "analytics" ? "granted" : "denied",
   });
 }
+
+/** Send the initial page_view only after the GA4 config command has been queued. */
+export function sendGooglePageView(measurementId: string) {
+  if (typeof window === "undefined" || !window.gtag || !measurementId) return;
+  window.gtag("event", "page_view", {
+    page_title: document.title,
+    page_location: window.location.href,
+    page_path: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+  });
+}

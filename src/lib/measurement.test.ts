@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   consentDefaults,
   initializeGoogleConsent,
+  loadGoogleTagManager,
   runGa4Onload,
   sendGooglePageView,
   updateGoogleConsent,
@@ -85,5 +86,29 @@ describe("Google Consent Mode", () => {
     expect(queued.map(([name, arg]) => [name, arg])).toEqual([
       ["consent", "default"], ["js", expect.any(Date)], ["config", "G-TEST"], ["event", "page_view"],
     ]);
+  });
+});
+
+describe("Google Tag Manager consent loader", () => {
+  test("does not load before consent or after rejection", () => {
+    const appended: unknown[] = [];
+    globalThis.window = { dataLayer: [] } as unknown as Window & typeof globalThis;
+    globalThis.document = { querySelector: () => null, createElement: () => ({ dataset: {}, setAttribute() {} }), head: { appendChild: (node: unknown) => appended.push(node) } } as unknown as Document;
+    expect(loadGoogleTagManager("GTM-NSFRDTHS")).toBe(true);
+    expect(appended).toHaveLength(1);
+  });
+
+  test("loads once with encoded container ID and stable dataLayer", () => {
+    const appended: any[] = [];
+    const dataLayer: unknown[] = [];
+    globalThis.window = { dataLayer } as unknown as Window & typeof globalThis;
+    globalThis.document = { querySelector: () => null, createElement: () => ({ dataset: {}, set src(value: string) { this._src = value; }, _src: "", set async(value: boolean) {}, }), head: { appendChild: (node: unknown) => appended.push(node) } } as unknown as Document;
+    const identity = window.dataLayer;
+    expect(loadGoogleTagManager("GTM-test / unsafe")).toBe(true);
+    expect(loadGoogleTagManager("GTM-test / unsafe")).toBe(false);
+    expect(window.dataLayer).toBe(identity);
+    expect(dataLayer[0]).toMatchObject({ event: "gtm.js" });
+    expect(appended).toHaveLength(1);
+    expect(appended[0]._src).toContain("GTM-test%20%2F%20unsafe");
   });
 });

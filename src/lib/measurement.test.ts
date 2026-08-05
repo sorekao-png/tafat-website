@@ -9,16 +9,13 @@ import {
 
 describe("Google Consent Mode", () => {
   test("queues denied defaults before tags are loaded", () => {
-    const calls: unknown[][] = [];
     const dataLayer: unknown[] = [];
-    globalThis.window = {
-      dataLayer,
-      gtag: (...args: unknown[]) => calls.push(args),
-    } as unknown as Window & typeof globalThis;
+    globalThis.window = { dataLayer } as unknown as Window & typeof globalThis;
 
     initializeGoogleConsent();
 
-    expect(calls).toEqual([["consent", "default", consentDefaults]]);
+    const queued = Array.from(dataLayer[0] as IArguments);
+    expect(queued).toEqual(["consent", "default", consentDefaults]);
     expect(consentDefaults).toEqual({
       analytics_storage: "denied",
       ad_storage: "denied",
@@ -66,25 +63,26 @@ describe("Google Consent Mode", () => {
     ]]);
   });
 
-  test("keeps one dataLayer identity and runs commands on onload in order", () => {
+  test("uses canonical global gtag and preserves dataLayer identity and order", () => {
     const dataLayer: unknown[] = [];
-    const calls: unknown[][] = [];
     globalThis.window = {
       dataLayer,
-      gtag: (...args: unknown[]) => { calls.push(args); dataLayer.push(args); },
       location: { href: "https://tafat.co.uk/", pathname: "/", search: "", hash: "" },
       __tafatGa4Runtime: { order: [], loaded: false },
     } as unknown as Window & typeof globalThis;
     globalThis.document = { title: "Tafat" } as Document;
     const identity = window.dataLayer;
     initializeGoogleConsent();
+    const globalGtag = window.gtag;
     runGa4Onload("G-TEST");
+    expect(window.gtag).toBe(globalGtag);
     expect(window.dataLayer).toBe(identity);
+    const queued = dataLayer.map((entry) => Array.from(entry as IArguments));
     expect(window.__tafatGa4Runtime?.order).toEqual([
       "consent default denied", "GA4 script onload", "gtag js",
       "config G-TEST send_page_view:false", "event page_view",
     ]);
-    expect(calls.map(([name, arg]) => [name, arg])).toEqual([
+    expect(queued.map(([name, arg]) => [name, arg])).toEqual([
       ["consent", "default"], ["js", expect.any(Date)], ["config", "G-TEST"], ["event", "page_view"],
     ]);
   });

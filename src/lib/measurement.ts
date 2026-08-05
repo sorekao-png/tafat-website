@@ -54,11 +54,19 @@ export function writeConsent(value: Exclude<ConsentState, "unknown">) {
 /**
  * Install the Consent Mode default before loading any Google tag. Keeping this
  * small and side-effect-free until called makes the ordering explicit and testable.
+ *
+ * Install the canonical Google queue function on the global window. Google tags
+ * consume the IArguments entry pushed by this function, so do not replace it
+ * with a closure-local queue or an array of rest arguments.
  */
+function gtag() {
+  window.dataLayer!.push(arguments);
+}
+
 export function initializeGoogleConsent() {
   if (typeof window === "undefined") return;
   if (!window.dataLayer) window.dataLayer = [];
-  window.gtag = window.gtag || ((...args: unknown[]) => window.dataLayer!.push(args));
+  window.gtag = gtag;
   window.gtag("consent", "default", consentDefaults);
   recordGa4Runtime("consent default denied");
 }

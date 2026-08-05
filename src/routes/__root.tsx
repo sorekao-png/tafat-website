@@ -39,7 +39,6 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "canonical", href: "https://tafat.co.uk/" },
     ],
     scripts: [{
       type: "application/ld+json",

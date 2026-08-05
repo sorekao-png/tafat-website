@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { Route as HealthWellnessRoute } from "../routes/health-wellness";
+import { Route as MagnesiumGuideRoute } from "../routes/health-wellness.the-complete-guide-to-magnesium";
 
 const ROOT = process.cwd();
 const SITE = "https://tafat.co.uk";
@@ -64,5 +66,57 @@ describe("SEO production host guard", () => {
     const block = json.slice(start + 1, end);
     const questions = block.filter((x, i) => x.s.startsWith("Heading3") && x.t.trim().endsWith("?") && block[i + 1] && !block[i + 1].s.startsWith("Heading"));
     expect(questions.length).toBeGreaterThanOrEqual(8);
+  });
+});
+
+describe("route-level head strategy (deepest matched route owns the page head)", () => {
+  const CATEGORY = "/health-wellness";
+  const GUIDE = "/health-wellness/the-complete-guide-to-magnesium";
+
+  function headOf(route: unknown, routeIds: string[]) {
+    const options = (route as { options: { head?: (ctx: unknown) => unknown } }).options;
+    if (!options.head) throw new Error("route has no head option");
+    return Promise.resolve(options.head({ matches: routeIds.map((routeId) => ({ routeId })) }));
+  }
+  function canonicalHrefs(head: any): string[] {
+    return (head.links ?? [])
+      .filter((l: { rel?: string }) => l.rel === "canonical")
+      .map((l: { href?: string }) => l.href);
+  }
+
+  test("root route no longer emits a site-wide canonical (layout route, not a page)", () => {
+    const root = read("src/routes/__root.tsx");
+    expect(root).not.toContain("canonical");
+  });
+
+  test("home route owns the canonical for /", () => {
+    const home = read("src/routes/index.tsx");
+    expect(home).toContain('rel: "canonical", href: "https://tafat.co.uk/"');
+  });
+
+  test("category route emits its canonical only when it is the deepest match", async () => {
+    const leafHead = (await headOf(HealthWellnessRoute, ["__root", CATEGORY])) as any;
+    expect(canonicalHrefs(leafHead)).toEqual(["https://tafat.co.uk/health-wellness"]);
+    expect(leafHead.meta.some((m: { title?: string }) => m.title)).toBe(true);
+    expect((leafHead.scripts ?? [])[0].children).toContain('"@type":"CollectionPage"');
+
+    // When the guide child is matched, the category route must emit NO page head:
+    // no second canonical, no category meta, no CollectionPage JSON-LD.
+    const childHead = (await headOf(HealthWellnessRoute, ["__root", CATEGORY, GUIDE])) as any;
+    expect(childHead.links ?? []).toEqual([]);
+    expect(childHead.meta ?? []).toEqual([]);
+    expect(childHead.scripts ?? []).toEqual([]);
+  });
+
+  test("guide route emits exactly its own canonical plus Article/Breadcrumb/FAQ JSON-LD", async () => {
+    const head = (await headOf(MagnesiumGuideRoute, ["__root", CATEGORY, GUIDE])) as any;
+    expect(canonicalHrefs(head)).toEqual([
+      "https://tafat.co.uk/health-wellness/the-complete-guide-to-magnesium",
+    ]);
+    const ld = (head.scripts ?? []).map((s: { children: string }) => s.children).join("\n");
+    expect(ld).toContain('"@type":"Article"');
+    expect(ld).toContain('"@type":"BreadcrumbList"');
+    expect(ld).toContain('"@type":"FAQPage"');
+    expect(ld).not.toContain('"@type":"CollectionPage"');
   });
 });

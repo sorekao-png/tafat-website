@@ -1,9 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 
 const description =
   "Explore thoughtfully selected wellness guides, vitamins, sleep resources, hydration products, gut-health information, and practical recommendations from TAFAT.";
 
 const GUIDE_URL = "/health-wellness/the-complete-guide-to-magnesium";
+const CATEGORY_CANONICAL = "https://tafat.co.uk/health-wellness";
+const CATEGORY_ROUTE_ID = "/health-wellness";
 
 const categories = [
   ["Vitamins & Minerals", "Everyday information to help you compare options with care.", "✦", GUIDE_URL],
@@ -15,40 +17,58 @@ const categories = [
 ] as const;
 
 export const Route = createFileRoute("/health-wellness")({
-  head: () => ({
-    meta: [
-      { title: "Health & Wellness Guides and Recommendations | TAFAT" },
-      { name: "description", content: description },
-      { property: "og:title", content: "Health & Wellness Guides and Recommendations | TAFAT" },
-      { property: "og:description", content: description },
-      { property: "og:url", content: "https://tafat.co.uk/health-wellness" },
-    ],
-    links: [{ rel: "canonical", href: "https://tafat.co.uk/health-wellness" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          name: "Health & Wellness",
-          description,
-          url: "https://tafat.co.uk/health-wellness",
-          isPartOf: { "@type": "WebSite", name: "TAFAT", url: "https://tafat.co.uk/" },
-          breadcrumb: {
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: "https://tafat.co.uk/" },
-              { "@type": "ListItem", position: 2, name: "Health & Wellness", item: "https://tafat.co.uk/health-wellness" },
-            ],
-          },
-        }),
-      },
-    ],
-  }),
+  head: (ctx) => {
+    // Route-level head strategy: page-level metadata (title, description, canonical,
+    // og:url, page JSON-LD) belongs to the DEEPEST matched route only. When a child
+    // guide (e.g. /health-wellness/the-complete-guide-to-magnesium) is matched it owns
+    // the head; this category route emits nothing so the guide page never carries a
+    // second canonical link or a CollectionPage JSON-LD.
+    const isLeaf = ctx.matches[ctx.matches.length - 1]?.routeId === CATEGORY_ROUTE_ID;
+    if (!isLeaf) return {};
+    return {
+      meta: [
+        { title: "Health & Wellness Guides and Recommendations | TAFAT" },
+        { name: "description", content: description },
+        { property: "og:title", content: "Health & Wellness Guides and Recommendations | TAFAT" },
+        { property: "og:description", content: description },
+        { property: "og:url", content: CATEGORY_CANONICAL },
+      ],
+      links: [{ rel: "canonical", href: CATEGORY_CANONICAL }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Health & Wellness",
+            description,
+            url: CATEGORY_CANONICAL,
+            isPartOf: { "@type": "WebSite", name: "TAFAT", url: "https://tafat.co.uk/" },
+            breadcrumb: {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "Home", item: "https://tafat.co.uk/" },
+                { "@type": "ListItem", position: 2, name: "Health & Wellness", item: CATEGORY_CANONICAL },
+              ],
+            },
+          }),
+        },
+      ],
+    };
+  },
   component: HealthWellness,
 });
 
 function HealthWellness() {
+  // When a child route is matched (e.g. the complete magnesium guide), render that
+  // child page through <Outlet /> instead of this category listing. The category
+  // page at /health-wellness is preserved when it is the deepest match.
+  const deepestRouteId = useRouterState({
+    select: (s) => s.matches[s.matches.length - 1]?.routeId,
+  });
+  if (deepestRouteId !== CATEGORY_ROUTE_ID) {
+    return <Outlet />;
+  }
   return (
     <div className="site-shell">
       <header className="nav wrap">

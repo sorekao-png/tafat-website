@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [{ title: "Tafat — Find something good" }],
+    links: [{ rel: "canonical", href: "https://tafat.co.uk/" }],
+  }),
+  component: Home,
+});
 
 type Product = {
   name: string; category: "Digital" | "Health"; description: string; tags: string[]; price: string; accent: string; href: string; badge?: string;

@@ -3,6 +3,7 @@ import content from "~/lib/magnesium-content.json";
 import { useState, type ReactNode } from "react";
 
 const canonical = "https://tafat.co.uk/health-wellness/the-complete-guide-to-magnesium";
+const GUIDE_ROUTE_ID = "/health-wellness/the-complete-guide-to-magnesium";
 const HERO_IMAGE = "https://tafat.co.uk/magnesium-mineral.jpg";
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -55,7 +56,14 @@ const faqLd = faq.length > 0
   : null;
 
 export const Route = createFileRoute("/health-wellness/the-complete-guide-to-magnesium")({
-  head: () => ({
+  head: (ctx) => {
+    // Route-level head strategy: this guide route is a leaf, so whenever it is
+    // matched it owns the page head (single canonical, article JSON-LD). If a
+    // deeper route is ever added beneath it, the gate below keeps the invariant
+    // "the deepest matched route owns the page head".
+    const isLeaf = ctx.matches[ctx.matches.length - 1]?.routeId === GUIDE_ROUTE_ID;
+    if (!isLeaf) return {};
+    return {
     meta: [
       { title: "The Complete Guide to Magnesium: Evidence, Food, Forms and Safety | TAFAT" },
       { name: "description", content: "A complete evidence guide to magnesium: what it is, daily requirements, food sources, supplement forms, health claims, safety and interactions." },
@@ -99,7 +107,8 @@ export const Route = createFileRoute("/health-wellness/the-complete-guide-to-mag
       },
       ...(faqLd ? [{ type: "application/ld+json", children: JSON.stringify(faqLd) }] : []),
     ],
-  }),
+    };
+  },
   component: Article,
 });
 

@@ -11,6 +11,7 @@ import appCss from "~/styles/app.css?url";
 import {
   initializeGoogleConsent,
   loadGoogleTagManager,
+  loadMicrosoftClarity,
   measurementConfig,
   readConsent,
   recordGa4Runtime,
@@ -88,12 +89,7 @@ function ConsentAwareMeasurement() {
         script.onerror = () => recordGa4Runtime("GA4 script error");
         document.head.appendChild(script);
       }
-      if (clarityProjectId) {
-        const script = document.createElement("script");
-        script.async = true;
-        script.src = `https://www.clarity.ms/tag/${encodeURIComponent(clarityProjectId)}`;
-        document.head.appendChild(script);
-      }
+      if (clarityProjectId) loadMicrosoftClarity(clarityProjectId);
     };
     load();
     window.addEventListener("tafat-consent", load);

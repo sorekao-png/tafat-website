@@ -3,6 +3,7 @@ declare global {
     dataLayer?: unknown[];
     gtag?: (...args: unknown[]) => void;
     __tafatGa4Runtime?: { order: string[]; loaded: boolean };
+    __tafatGtmLoaded?: boolean;
   }
 }
 
@@ -24,7 +25,7 @@ export type ConsentState = "unknown" | "denied" | "analytics";
 /** Public, non-secret IDs only. Leave unset until the owner creates each property. */
 const publicEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env || {};
 export const measurementConfig = {
-  gtmId: publicEnv.VITE_GTM_ID?.trim() || "",
+  gtmId: publicEnv.VITE_GTM_CONTAINER_ID?.trim() || "",
   ga4MeasurementId: publicEnv.VITE_GA4_MEASUREMENT_ID?.trim() || "",
   clarityProjectId: publicEnv.VITE_CLARITY_PROJECT_ID?.trim() || "",
   bingVerification: publicEnv.VITE_BING_VERIFICATION?.trim() || "",
@@ -51,24 +52,41 @@ export function writeConsent(value: Exclude<ConsentState, "unknown">) {
   window.dispatchEvent(new CustomEvent("tafat-consent", { detail: value }));
 }
 
-/**
- * Install the Consent Mode default before loading any Google tag. Keeping this
- * small and side-effect-free until called makes the ordering explicit and testable.
- *
- * Install the canonical Google queue function on the global window. Google tags
- * consume the IArguments entry pushed by this function, so do not replace it
- * with a closure-local queue or an array of rest arguments.
- */
+/** Ensure one stable queue is shared by Consent Mode, GA4, and GTM. */
+function ensureDataLayer() {
+  if (!window.dataLayer) window.dataLayer = [];
+  return window.dataLayer;
+}
+
 function gtag() {
-  window.dataLayer!.push(arguments);
+  ensureDataLayer().push(arguments);
 }
 
 export function initializeGoogleConsent() {
   if (typeof window === "undefined") return;
-  if (!window.dataLayer) window.dataLayer = [];
+  ensureDataLayer();
   window.gtag = gtag;
   window.gtag("consent", "default", consentDefaults);
   recordGa4Runtime("consent default denied");
+}
+
+/** Load GTM only after optional analytics consent. No noscript fallback is used. */
+export function loadGoogleTagManager(containerId: string): boolean {
+  if (typeof window === "undefined" || !containerId || window.__tafatGtmLoaded) return false;
+  const existing = document.querySelector('script[data-tafat-gtm="true"]');
+  if (existing) {
+    window.__tafatGtmLoaded = true;
+    return false;
+  }
+  const dataLayer = ensureDataLayer();
+  dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+  const script = document.createElement("script");
+  script.async = true;
+  script.dataset.tafatGtm = "true";
+  script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(containerId)}`;
+  document.head.appendChild(script);
+  window.__tafatGtmLoaded = true;
+  return true;
 }
 
 /** Commands which must run only after the vendor script has loaded. */
@@ -88,13 +106,10 @@ export function runGa4Onload(measurementId: string) {
 
 export function updateGoogleConsent(state: Exclude<ConsentState, "unknown">) {
   if (!window.gtag) initializeGoogleConsent();
-  window.gtag?.("consent", "update", {
-    analytics_storage: state === "analytics" ? "granted" : "denied",
-  });
+  window.gtag?.("consent", "update", { analytics_storage: state === "analytics" ? "granted" : "denied" });
   recordGa4Runtime(`consent update ${state === "analytics" ? "granted" : "denied"}`);
 }
 
-/** Send the initial page_view only after the GA4 config command has been queued. */
 export function sendGooglePageView(measurementId: string) {
   if (typeof window === "undefined" || !window.gtag || !measurementId) return;
   window.gtag("event", "page_view", {

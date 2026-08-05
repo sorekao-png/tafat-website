@@ -10,6 +10,7 @@ import { useEffect } from "react";
 import appCss from "~/styles/app.css?url";
 import {
   initializeGoogleConsent,
+  loadGoogleTagManager,
   measurementConfig,
   readConsent,
   recordGa4Runtime,
@@ -78,13 +79,7 @@ function ConsentAwareMeasurement() {
       if (loaded) return;
       loaded = true;
       const { gtmId, ga4MeasurementId, clarityProjectId } = measurementConfig;
-      if (gtmId) {
-        window.dataLayer!.push({ "gtm.start": Date.now(), event: "gtm.js" });
-        const script = document.createElement("script");
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(gtmId)}`;
-        document.head.appendChild(script);
-      }
+      if (gtmId) loadGoogleTagManager(gtmId);
       if (ga4MeasurementId) {
         const script = document.createElement("script");
         script.async = true;

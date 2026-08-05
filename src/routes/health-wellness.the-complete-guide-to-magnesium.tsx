@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import content from "~/lib/magnesium-content.json";
 import { useState, type ReactNode } from "react";
+import {
+  BookIcon,
+  FlaskIcon,
+  LeafCheckIcon,
+  MagnesiumHeroIllustration,
+  MeterIcon,
+  QuoteIcon,
+  ScaleIcon,
+  ShieldIcon,
+} from "../lib/illustrations";
 
 const canonical = "https://tafat.co.uk/health-wellness/the-complete-guide-to-magnesium";
 const GUIDE_ROUTE_ID = "/health-wellness/the-complete-guide-to-magnesium";
@@ -112,27 +122,253 @@ export const Route = createFileRoute("/health-wellness/the-complete-guide-to-mag
   component: Article,
 });
 
+type Entry = { t: string; s: string };
+const level = (s: string) => (s.startsWith("Heading1") ? 1 : s.startsWith("Heading2") ? 2 : s.startsWith("Heading3") ? 3 : s.startsWith("Heading4") ? 4 : 0);
+
+/** Render a plain run of entries (used inside editorial boxes). Never alters text. */
+function renderSimple(entries: Entry[], baseKey: string): ReactNode[] {
+  const out: ReactNode[] = [];
+  let bullets: string[] = [];
+  const flush = (key: string) => {
+    if (bullets.length === 0) return;
+    out.push(<ul key={key}>{bullets.map((b, j) => <li key={j}>{b}</li>)}</ul>);
+    bullets = [];
+  };
+  entries.forEach((e, idx) => {
+    const k = `${baseKey}-${idx}`;
+    if (e.s === "Compact") { bullets.push(e.t); return; }
+    flush(`${baseKey}-ul-${idx}`);
+    if (e.s.startsWith("Heading4")) { out.push(<h4 key={k}>{e.t}</h4>); return; }
+    if (e.s.startsWith("Heading3")) { out.push(<h3 key={k}>{e.t}</h3>); return; }
+    if (e.s.startsWith("Heading1") || e.s.startsWith("Heading2")) { out.push(<h2 key={k}>{e.t}</h2>); return; }
+    if (e.s === "BlockText") { out.push(<blockquote className="field-note" key={k}>{e.t}</blockquote>); return; }
+    if (/^[✓✔☑]/.test(e.t)) { out.push(<p className="check-item" key={k}>{e.t}</p>); return; }
+    if (/^[🟡🟢🔴]/.test(e.t)) { out.push(<p className="meter-chip" key={k}>{e.t}</p>); return; }
+    out.push(<p key={k}>{e.t}</p>);
+  });
+  flush(`${baseKey}-ul-end`);
+  return out;
+}
+
+/** "At a Glance Comparison" — the manuscript's inline table becomes comparison cards. */
+function parseComparison(start: number): { labels: string[]; rows: { name: string; cells: string[] }[]; end: number } | null {
+  const labels = (content[start + 1]?.t ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  if (labels.length < 2) return null;
+  const rows: { name: string; cells: string[] }[] = [];
+  let cur: { name: string; cells: string[] } | null = null;
+  let j = start + 2;
+  for (; j < content.length; j++) {
+    const e = content[j];
+    if (e.s.startsWith("Heading")) break;
+    if (e.s === "Compact") { cur?.cells.push(e.t); continue; }
+    cur = { name: e.t, cells: [] };
+    rows.push(cur);
+  }
+  return rows.length > 0 ? { labels, rows, end: j } : null;
+}
+
+/** "Myth or Fact?" — Myth/Fact heading pairs become two cards. */
+function parseMythFact(start: number): { myth: string; fact: string; end: number } | null {
+  let myth = "";
+  let fact = "";
+  let j = start + 1;
+  while (j < content.length && !content[j].s.startsWith("Heading1") && !content[j].s.startsWith("Heading2") && !content[j].s.startsWith("Heading3")) {
+    const e = content[j];
+    if (e.t === "Myth" && content[j + 1] && !content[j + 1].s.startsWith("Heading")) { myth = content[j + 1].t; j += 2; continue; }
+    if (e.t === "Fact" && content[j + 1] && !content[j + 1].s.startsWith("Heading")) { fact = content[j + 1].t; j += 2; continue; }
+    break;
+  }
+  return myth && fact ? { myth, fact, end: j } : null;
+}
+
+/** "The TAFAT Trust Score™" — label/value pairs become a scored card. */
+function parseTrustScore(start: number): { intro: string; heading: string; rows: { label: string; value: number }[]; max: string; note: string; end: number } | null {
+  let intro = "";
+  let heading = "";
+  const rows: { label: string; value: number }[] = [];
+  let max = "";
+  let note = "";
+  let pending: string | null = null;
+  let j = start + 1;
+  for (; j < content.length; j++) {
+    const e = content[j];
+    if (e.s.startsWith("Heading1") || e.s.startsWith("Heading2")) break;
+    const t = e.t.trim();
+    if (e.s === "FirstParagraph" && !intro) { intro = e.t; continue; }
+    if (t === "Category Points") { heading = e.t; continue; }
+    if (/^\d+$/.test(t)) { if (pending) { rows.push({ label: pending, value: Number(t) }); pending = null; } continue; }
+    if (t.startsWith("Maximum score")) { max = e.t; continue; }
+    pending = e.t;
+  }
+  // Any trailing paragraph (e.g. the closing explanation) is preserved verbatim.
+  if (pending) note = pending;
+  return rows.length > 0 ? { intro, heading, rows, max, note, end: j } : null;
+}
+
+/** Editorial box wrapper (research highlight / checklist / verdict). */
+function editorialBox(kind: "research" | "checklist" | "verdict", heading: string, id: string | undefined, icon: ReactNode, children: ReactNode[], key: string) {
+  return (
+    <section className={`editorial-box ${kind}`} key={key}>
+      <h2 id={id}><span className="box-icon" aria-hidden="true">{icon}</span>{heading}</h2>
+      {children}
+    </section>
+  );
+}
+
 function Article() {
   const [email, setEmail] = useState("");
 
-  // Render the manuscript as valid HTML: consecutive Compact entries become one <ul>.
+  // Build the manuscript as styled editorial blocks. Special manuscript blocks
+  // (comparison, myth/fact, research highlights, checklists, verdicts, trust
+  // score, claims, truth meters) get presentation-only wrappers; every word of
+  // the manuscript is preserved exactly, including cautions and health claims.
   const segments: ReactNode[] = [];
-  let bulletGroup: string[] = [];
-  const flushBullets = (key: string) => {
-    if (bulletGroup.length === 0) return;
-    segments.push(<ul key={key}>{bulletGroup.map((b, j) => <li key={j}>{b}</li>)}</ul>);
-    bulletGroup = [];
-  };
-  content.forEach((x, i) => {
-    const t = x.t;
-    if (x.s === "Compact") { bulletGroup.push(t); return; }
-    flushBullets(`ul-${i}`);
-    if (x.s.startsWith("Heading1") || x.s.startsWith("Heading2")) { segments.push(<h2 id={idByIndex.get(i)} key={i}>{t}</h2>); return; }
-    if (x.s.startsWith("Heading3") || x.s.startsWith("Heading4")) { segments.push(<h3 key={i}>{t}</h3>); return; }
-    if (x.s === "BlockText") { segments.push(<blockquote key={i}>{t}</blockquote>); return; }
-    segments.push(<p key={i}>{t}</p>);
-  });
-  flushBullets("ul-end");
+  {
+    let bulletGroup: string[] = [];
+    const flushBullets = (key: string) => {
+      if (bulletGroup.length === 0) return;
+      segments.push(<ul key={key}>{bulletGroup.map((b, j) => <li key={j}>{b}</li>)}</ul>);
+      bulletGroup = [];
+    };
+    let i = 0;
+    while (i < content.length) {
+      const x = content[i];
+      const t = x.t;
+      // Comparison table
+      if (t === "At a Glance Comparison") {
+        const parsed = parseComparison(i);
+        if (parsed) {
+          segments.push(
+            <section className="editorial-box compare" key={`compare-${i}`}>
+              <h2 id={idByIndex.get(i)}><span className="box-icon" aria-hidden="true"><ScaleIcon /></span>{t}</h2>
+              <div className="compare-legend" aria-hidden="true">{parsed.labels.map((l) => <span key={l}>{l}</span>)}</div>
+              <div className="compare-grid">
+                {parsed.rows.map((r) => (
+                  <article className="compare-card" key={r.name}>
+                    <h3 className="compare-name">{r.name}</h3>
+                    {r.cells.map((cell, k) => (
+                      <p className="compare-cell" key={k}><strong>{parsed.labels[k + 1] ?? ""}</strong><span>{cell}</span></p>
+                    ))}
+                  </article>
+                ))}
+              </div>
+            </section>
+          );
+          i = parsed.end;
+          continue;
+        }
+      }
+      // Myth or Fact?
+      if (t === "Myth or Fact?") {
+        const parsed = parseMythFact(i);
+        if (parsed) {
+          const h = x.s.startsWith("Heading2") ? <h2 id={idByIndex.get(i)}>Myth or Fact?</h2> : <h3 id={idByIndex.get(i)}>Myth or Fact?</h3>;
+          segments.push(
+            <div className="myth-block" key={`myth-${i}`}>
+              {h}
+              <div className="myth-grid">
+                <div className="myth-card"><span className="myth-tag"><QuoteIcon />Myth</span><p>{parsed.myth}</p></div>
+                <div className="fact-card"><span className="fact-tag"><LeafCheckIcon />Fact</span><p>{parsed.fact}</p></div>
+              </div>
+            </div>
+          );
+          i = parsed.end;
+          continue;
+        }
+      }
+      // The Claim (claims chapter): heading + quoted claim card
+      if (t === "The Claim") {
+        segments.push(<h3 key={`claimh-${i}`}>{t}</h3>);
+        const next = content[i + 1];
+        if (next && next.s === "BlockText") {
+          segments.push(<figure className="claim-card" key={`claim-${i}`}><QuoteIcon /><blockquote>{next.t}</blockquote></figure>);
+          i += 2;
+          continue;
+        }
+        i += 1;
+        continue;
+      }
+      // Truth Meter / Truth Meter™ chips
+      if (t === "Truth Meter" || t === "Truth Meter™") {
+        segments.push(<h4 key={`meterh-${i}`}>{t}</h4>);
+        const next = content[i + 1];
+        if (next && (next.s === "FirstParagraph" || next.s === "BodyText") && /^[🟡🟢🔴]/.test(next.t)) {
+          segments.push(<p className="meter-chip" key={`meter-${i}`}>{next.t}</p>);
+          i += 2;
+          continue;
+        }
+        i += 1;
+        continue;
+      }
+      // Research highlight / summary boxes
+      if (t === "TAFAT Research Highlight" || t === "TAFAT Research Summary") {
+        const lvl = level(x.s);
+        const children: Entry[] = [];
+        let j = i + 1;
+        while (j < content.length && level(content[j].s) > lvl) { children.push(content[j]); j++; }
+        segments.push(editorialBox("research", t, idByIndex.get(i), <LeafCheckIcon />, renderSimple(children, `research-${i}`), `research-${i}`));
+        i = j;
+        continue;
+      }
+      // Checklist boxes
+      if (t === "TAFAT Buying Checklist" || t === "The TAFAT Label Checklist" || t === "The TAFAT Safety Checklist") {
+        const lvl = level(x.s);
+        const children: Entry[] = [];
+        let j = i + 1;
+        while (j < content.length && level(content[j].s) > lvl) { children.push(content[j]); j++; }
+        segments.push(editorialBox("checklist", t, idByIndex.get(i), <BookIcon />, renderSimple(children, `checklist-${i}`), `checklist-${i}`));
+        i = j;
+        continue;
+      }
+      // Verdict boxes
+      if (t === "TAFAT Verdict" || t === "The TAFAT Verdict" || t === "The Honest Verdict") {
+        const lvl = level(x.s);
+        const children: Entry[] = [];
+        let j = i + 1;
+        while (j < content.length && level(content[j].s) > lvl) { children.push(content[j]); j++; }
+        segments.push(editorialBox("verdict", t, idByIndex.get(i), <MeterIcon />, renderSimple(children, `verdict-${i}`), `verdict-${i}`));
+        i = j;
+        continue;
+      }
+      // Trust score card
+      if (t === "The TAFAT Trust Score™") {
+        const parsed = parseTrustScore(i);
+        if (parsed) {
+          segments.push(
+            <section className="editorial-box trust" key={`trust-${i}`}>
+              <h2 id={idByIndex.get(i)}><span className="box-icon" aria-hidden="true"><MeterIcon /></span>{t}</h2>
+              {parsed.intro && <p>{parsed.intro}</p>}
+              {parsed.heading && <p className="score-heading">{parsed.heading}</p>}
+              <div className="score-card">
+                {parsed.rows.map((r) => (
+                  <div className="score-row" key={r.label}>
+                    <span className="score-label">{r.label}</span>
+                    <span className="score-track"><span className="score-fill" style={{ width: `${Math.min(100, r.value * 5)}%` }} /></span>
+                    <span className="score-value">{r.value}</span>
+                  </div>
+                ))}
+                {parsed.max && <p className="score-max">{parsed.max}</p>}
+              </div>
+              {parsed.note && <p className="score-note">{parsed.note}</p>}
+            </section>
+          );
+          i = parsed.end;
+          continue;
+        }
+      }
+      // Default entries
+      if (x.s === "Compact") { bulletGroup.push(t); i += 1; continue; }
+      flushBullets(`ul-${i}`);
+      if (x.s.startsWith("Heading1") || x.s.startsWith("Heading2")) { segments.push(<h2 id={idByIndex.get(i)} key={i}>{t}</h2>); i += 1; continue; }
+      if (x.s.startsWith("Heading3") || x.s.startsWith("Heading4")) { segments.push(<h3 key={i}>{t}</h3>); i += 1; continue; }
+      if (x.s === "BlockText") { segments.push(<blockquote className="field-note" key={i}>{t}</blockquote>); i += 1; continue; }
+      if (/^[✓✔☑]/.test(t)) { segments.push(<p className="check-item" key={i}>{t}</p>); i += 1; continue; }
+      if (/^[🟡🟢🔴]/.test(t)) { segments.push(<p className="meter-chip" key={i}>{t}</p>); i += 1; continue; }
+      segments.push(<p key={i}>{t}</p>);
+      i += 1;
+    }
+    flushBullets("ul-end");
+  }
 
   return (
     <div className="site-shell">
@@ -147,7 +383,7 @@ function Article() {
           <h1>The Complete Guide to <em>Magnesium</em></h1>
           <p className="article-dek">What it is, why it matters, where to find it, and how to think clearly about supplements.</p>
           <div className="article-meta">Published August 2026 · Last reviewed August 2026 · 35 minute read</div>
-          <img className="article-image" src="/magnesium-mineral.jpg" alt="Illustration from the magnesium manuscript showing the mineral's role in everyday health" width="1536" height="1024" />
+          <div className="article-hero-art"><MagnesiumHeroIllustration /></div>
         </section>
         <div className="article-layout wrap">
           <aside className="article-toc">
@@ -155,9 +391,16 @@ function Article() {
             {headings.map((h) => <a href={`#${idByIndex.get(content.indexOf(h))}`} key={h.t}>{h.t}</a>)}
           </aside>
           <article className="article-body">
-            <div className="callout warning"><strong>Educational guide, not medical advice.</strong><p>This guide is for education and does not diagnose, prevent, treat or cure disease. Speak with a qualified healthcare professional about your circumstances, medicines or supplements.</p></div>
+            <div className="callout warning"><strong><span className="callout-icon" aria-hidden="true"><ShieldIcon /></span>Educational guide, not medical advice.</strong><p>This guide is for education and does not diagnose, prevent, treat or cure disease. Speak with a qualified healthcare professional about your circumstances, medicines or supplements.</p></div>
+            <figure className="article-figure">
+              <img className="article-image" src="/magnesium-mineral.jpg" alt="Illustration from the magnesium manuscript showing the mineral's role in everyday health" width="1536" height="1024" />
+              <figcaption>The mineral in everyday health — illustration from the TAFAT manuscript.</figcaption>
+            </figure>
             {segments}
-            <img className="article-image" src="/rId9.jpg" alt="Second illustration extracted from the magnesium manuscript" width="1536" height="1024" />
+            <figure className="article-figure">
+              <img className="article-image" src="/rId9.jpg" alt="Second illustration extracted from the magnesium manuscript" width="1536" height="1024" />
+              <figcaption>Forms of magnesium — complementary illustration from the TAFAT manuscript.</figcaption>
+            </figure>
             <section className="review-placeholder">
               <h2>TAFAT Approved Magnesium Reviews</h2>
               <h3>Coming Soon</h3>

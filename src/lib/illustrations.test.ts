@@ -18,9 +18,9 @@ describe("TAFAT illustration language", () => {
     }
   });
 
-  test("live categories are exactly Digital and Health & Wellness; future ones are honest 'soon' cards", () => {
+  test("live categories include Digital, Health & Wellness, and Art & Creative Studio; future ones are honest 'soon' cards", () => {
     const live = HOME_CATEGORIES.filter((c) => c.status === "live");
-    expect(live.map((c) => c.name).sort()).toEqual(["Digital", "Health & Wellness"]);
+    expect(live.map((c) => c.name).sort()).toEqual(["Art & Creative Studio", "Digital", "Health & Wellness"]);
     for (const c of HOME_CATEGORIES.filter((c) => c.status === "soon")) {
       expect(c.href).toBeNull(); // never link a visitor to a non-existent page
       expect(c.tagline.toLowerCase()).toContain("coming soon");

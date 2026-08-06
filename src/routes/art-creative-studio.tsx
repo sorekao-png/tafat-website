@@ -1,0 +1,54 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { ArtIllustration, illustrationByKey } from "../lib/illustrations";
+
+const description = "Explore evidence-led guides to artist materials, studio setup, and creative practice from TAFAT.";
+const canonical = "https://tafat.co.uk/art-creative-studio";
+const topics = [
+  ["Acrylic Paint", "Clear guidance for choosing acrylics and understanding how they behave."],
+  ["Watercolour", "Thoughtful notes on pigments, paper, brushes, and technique."],
+  ["Oil Paint", "A considered starting point for materials, mediums, and studio care."],
+  ["Artist Brushes", "Learn what shapes, fibres, and construction can mean in practice."],
+  ["Canvas", "A future guide to surfaces, preparation, and choosing with confidence."],
+  ["Easels", "Practical context for stability, adjustability, and working comfortably."],
+  ["Colour Theory", "Build a clearer understanding of colour relationships and choices."],
+  ["Studio Setup", "Plan a useful creative space around your process and constraints."],
+] as const;
+
+export const Route = createFileRoute("/art-creative-studio")({
+  head: () => ({
+    meta: [
+      { title: "Art & Creative Studio Evidence Guides | TAFAT" },
+      { name: "description", content: description },
+      { property: "og:title", content: "Art & Creative Studio Evidence Guides | TAFAT" },
+      { property: "og:description", content: description },
+      { property: "og:url", content: canonical },
+    ],
+    links: [{ rel: "canonical", href: canonical }],
+    scripts: [{
+      type: "application/ld+json",
+      children: JSON.stringify({
+        "@context": "https://schema.org", "@type": "CollectionPage",
+        name: "Art & Creative Studio", description, url: canonical,
+        isPartOf: { "@type": "WebSite", name: "TAFAT", url: "https://tafat.co.uk/" },
+        breadcrumb: { "@type": "BreadcrumbList", itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://tafat.co.uk/" },
+          { "@type": "ListItem", position: 2, name: "Art & Creative Studio", item: canonical },
+        ] },
+      }),
+    }],
+  }),
+  component: ArtCreativeStudio,
+});
+
+function ArtCreativeStudio() {
+  const Art = illustrationByKey.art;
+  return <div className="site-shell">
+    <header className="nav wrap"><a className="brand" href="/" aria-label="Tafat home"><span className="brand-mark">t</span><span>tafat</span></a><nav><a href="/#discover">Discover</a><a href="/health-wellness">Health &amp; Wellness</a><a href="/art-creative-studio" aria-current="page">Art &amp; Creative Studio</a><a href="/#how-we-review">Our approach</a></nav><a className="nav-pill" href="/#stay-in-loop">Sign in / join</a></header>
+    <main>
+      <section className="category-hero wrap"><p className="eyebrow"><span className="spark">✦</span> TAFAT Evidence Library</p><h1>Art &amp; <em>Creative Studio</em></h1><p className="category-intro">Great art begins long before the first brush touches the canvas. Choosing quality materials, understanding how they work, and investing wisely can save frustration, improve results, and help artists create with confidence.</p><p className="affiliate-banner">Affiliate disclosure: there are no product recommendations or affiliate links in this category yet.</p></section>
+      <section className="category-section wrap" aria-labelledby="featured-heading"><div className="section-heading"><div><p className="eyebrow">A considered collection</p><h2 id="featured-heading">Featured Evidence Guides</h2></div></div><div className="creative-topic-grid">{topics.map(([name, copy], index) => { const Ill = index === 0 ? ArtIllustration : Art; return <article className="creative-topic-card" key={name}><span className="creative-topic-art" aria-hidden="true"><Ill /></span><div><h3>{name}</h3><p>{copy}</p><span className="coming-soon-label">Coming soon</span></div></article>; })}</div></section>
+      <section className="evaluation-section"><div className="wrap evaluation-inner"><div><p className="eyebrow">A transparent next step</p><h2>TAFAT Product Evaluations</h2><p>We are currently evaluating artist supplies using the TAFAT Editorial Standard. Recommendations will only be published after comparing quality, durability, transparency, value, and real-world performance.</p><a className="primary-button" href="/editorial-standards">Learn About Our Evaluation Process <span aria-hidden="true">→</span></a></div><span className="evaluation-art" aria-hidden="true"><ArtIllustration /></span></div></section>
+    </main>
+    <footer className="footer wrap"><a className="brand" href="/"><span className="brand-mark">t</span><span>tafat</span></a><p>Good things, found thoughtfully.</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/editorial-standards">Editorial Standards</a></div><small>© 2026 Tafat · Recommendations are published only after transparent evaluation.</small></footer>
+  </div>;
+}

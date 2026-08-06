@@ -73,11 +73,11 @@ export const HOME_CATEGORIES: readonly HomeCategory[] = [
   },
   {
     id: "art",
-    name: "Art",
-    tagline: "Tools and inspiration for making — coming soon to TAFAT.",
+    name: "Art & Creative Studio",
+    tagline: "Materials and studio guidance, researched before recommendations arrive.",
     art: "art",
-    href: null,
-    status: "soon",
+    href: "/art-creative-studio",
+    status: "live",
     accent: "moss",
   },
 ] as const;

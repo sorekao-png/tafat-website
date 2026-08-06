@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Route as HealthWellnessRoute } from "../routes/health-wellness";
 import { Route as MagnesiumGuideRoute } from "../routes/health-wellness.the-complete-guide-to-magnesium";
+import { Route as ArtCreativeStudioRoute } from "../routes/art-creative-studio";
 
 const ROOT = process.cwd();
 const SITE = "https://tafat.co.uk";
@@ -12,7 +13,7 @@ function read(rel: string): string {
 }
 
 describe("SEO production host guard", () => {
-  test("sitemap.xml contains the six expected tafat.co.uk locs in order", () => {
+  test("sitemap.xml contains the expected tafat.co.uk locs in order", () => {
     const xml = read("public/sitemap.xml");
     const locs = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
     expect(locs).toEqual([
@@ -22,6 +23,8 @@ describe("SEO production host guard", () => {
       `${SITE}/health-wellness`,
       `${SITE}/health-wellness/the-complete-guide-to-magnesium`,
       `${SITE}/editorial-standards`,
+      `${SITE}/health-wellness/vitamin-d-guide`,
+      `${SITE}/art-creative-studio`,
     ]);
   });
 
@@ -121,6 +124,15 @@ describe("route-level head strategy (deepest matched route owns the page head)",
     expect(ld).toContain('"@type":"BreadcrumbList"');
     expect(ld).toContain('"@type":"FAQPage"');
     expect(ld).not.toContain('"@type":"CollectionPage"');
+  });
+
+  test("Art & Creative Studio route emits exactly one canonical and CollectionPage/BreadcrumbList JSON-LD", async () => {
+    const head = (await headOf(ArtCreativeStudioRoute, ["__root", "/art-creative-studio"])) as any;
+    expect(canonicalHrefs(head)).toEqual(["https://tafat.co.uk/art-creative-studio"]);
+    const ld = (head.scripts ?? []).map((s: { children: string }) => s.children).join("\n");
+    expect(ld).toContain('"@type":"CollectionPage"');
+    expect(ld).toContain('"@type":"BreadcrumbList"');
+    expect(ld).not.toContain("ctonew.app");
   });
 
   test("editorial-standards route emits exactly its own canonical plus truthful WebPage and BreadcrumbList JSON-LD", async () => {

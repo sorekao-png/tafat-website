@@ -457,6 +457,126 @@ export function MeterIcon({ className }: IllProps) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Editorial Standard premium section (wide, book + botany motif)       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Wide illustration for the premium "Editorial Standard" section and its
+ * dedicated page. Handcrafted in the same botanical/scientific language as
+ * the rest of TAFAT: an open book with a sprig rising from the spine,
+ * flanking leaves, a quill, scattered seed dots and four-point stars.
+ *
+ * The scene is drawn in `currentColor` so the surrounding surface controls
+ * the tone (soft gold on the dark editorial section). Decorative only.
+ */
+export function EditorialStandardIllustration({ className }: IllProps) {
+  return (
+    <svg className={className} viewBox="0 0 960 220" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
+      <g stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none">
+        {/* ground line */}
+        <path d="M120 168 C260 158 420 164 560 166 C700 168 820 160 880 164" opacity="0.5" />
+        {/* open book */}
+        <path d="M480 126 C452 110 420 106 392 108 L392 150 C420 148 452 152 480 168 C508 152 540 148 568 150 L568 108 C540 106 508 110 480 126 Z" fill="currentColor" opacity="0.09" />
+        <path d="M480 126 L480 168" />
+        <path d="M412 122 C434 124 456 126 476 130" opacity="0.5" strokeWidth="1.4" />
+        <path d="M484 130 C504 126 526 124 548 122" opacity="0.5" strokeWidth="1.4" />
+        {/* sprig rising from the book */}
+        <path d="M480 116 C478 98 481 86 480 70" />
+        <path d="M480 102 C470 101 466 95 467 87 C476 88 480 93 480 102 Z" fill="currentColor" opacity="0.22" />
+        <path d="M480 102 C470 101 466 95 467 87" />
+        <path d="M481 90 C491 89 495 94 494 102 C485 101 481 96 481 90 Z" fill="currentColor" opacity="0.22" />
+        <path d="M481 90 C491 89 495 94 494 102" />
+        <circle cx="480" cy="62" r="2.4" fill="currentColor" stroke="none" />
+        {/* quill */}
+        <path d="M616 148 C648 130 672 104 682 78" />
+        <path d="M682 78 C670 88 656 102 642 116" opacity="0.55" />
+        <path d="M626 138 C634 132 642 128 648 128 C648 128 640 134 630 140 C626 142 623 141 626 138 Z" fill="currentColor" opacity="0.18" />
+        <path d="M618 146 C622 143 626 141 628 141 C626 143 622 147 616 150 C614 151 614 149 618 146 Z" fill="currentColor" opacity="0.18" />
+        {/* flanking sprigs */}
+        <path d="M288 152 C286 136 290 122 288 106" opacity="0.9" />
+        <path d="M288 132 C278 131 274 125 275 117 C284 118 288 123 288 132 Z" fill="currentColor" opacity="0.22" />
+        <path d="M288 132 C278 131 274 125 275 117" opacity="0.9" />
+        <path d="M288.5 118 C298 117 302 122 301 130 C292 129 288 124 288.5 118 Z" fill="currentColor" opacity="0.22" />
+        <path d="M288.5 118 C298 117 302 122 301 130" opacity="0.9" />
+        <path d="M672 152 C674 138 670 124 672 110" opacity="0.9" />
+        <path d="M672 132 C662 131 658 125 659 117 C668 118 672 123 672 132 Z" fill="currentColor" opacity="0.22" />
+        <path d="M672 132 C662 131 658 125 659 117" opacity="0.9" />
+        <path d="M671.5 118 C681 117 685 122 684 130 C675 129 671 124 671.5 118 Z" fill="currentColor" opacity="0.22" />
+        <path d="M671.5 118 C681 117 685 122 684 130" opacity="0.9" />
+        {/* stars + seed dots */}
+        <path d="M352 88 q4.4 8 8.8 0 q-4.4 -8 -8.8 0 Z" fill="currentColor" opacity="0.7" stroke="none" />
+        <path d="M604 92 q3.4 6.2 6.8 0 q-3.4 -6.2 -6.8 0 Z" fill="currentColor" opacity="0.7" stroke="none" />
+        <path d="M432 176 q3 5.4 6 0 q-3 -5.4 -6 0 Z" fill="currentColor" opacity="0.55" stroke="none" />
+        <path d="M528 176 q3 5.4 6 0 q-3 -5.4 -6 0 Z" fill="currentColor" opacity="0.55" stroke="none" />
+        <circle cx="232" cy="120" r="2" fill="currentColor" opacity="0.6" stroke="none" />
+        <circle cx="742" cy="112" r="2" fill="currentColor" opacity="0.6" stroke="none" />
+        <circle cx="184" cy="88" r="1.7" fill="currentColor" opacity="0.45" stroke="none" />
+        <circle cx="792" cy="78" r="1.7" fill="currentColor" opacity="0.45" stroke="none" />
+        {/* dashed orbit arcs */}
+        <path d="M60 118 C120 60 240 36 340 44" strokeWidth="1.5" strokeDasharray="1 7" strokeLinecap="round" opacity="0.6" />
+        <path d="M900 118 C840 60 720 36 620 44" strokeWidth="1.5" strokeDasharray="1 7" strokeLinecap="round" opacity="0.6" />
+      </g>
+    </svg>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Editorial Standard principle icons (24x24, handcrafted set)          */
+/* ------------------------------------------------------------------ */
+
+/** Eye — transparency. */
+export function EyeIcon({ className }: IllProps) {
+  return (
+    <svg {...iconProps} className={className}>
+      <path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  );
+}
+
+/** Four-point star — quality over hype (a merit mark, not a rating). */
+export function QualityIcon({ className }: IllProps) {
+  return (
+    <svg {...iconProps} className={className}>
+      <path d="M12 3.4l1.9 4.6 4.6 1.9-4.6 1.9L12 16.4l-1.9-4.6-4.6-1.9 4.6-1.9z" />
+      <path d="M5.6 15.2l.9 2.2 2.2.9" opacity="0.6" />
+      <path d="M18.4 15.2l-.9 2.2-2.2.9" opacity="0.6" />
+    </svg>
+  );
+}
+
+/** Price tag — value matters. */
+export function TagIcon({ className }: IllProps) {
+  return (
+    <svg {...iconProps} className={className}>
+      <path d="M20.3 13.4 13.4 20.3a2 2 0 0 1-2.8 0L3 12.7V3h9.7l7.6 7.6a2 2 0 0 1 0 2.8z" />
+      <circle cx="8.2" cy="8.2" r="1.5" />
+    </svg>
+  );
+}
+
+/** Circular review arrows — continuous review. */
+export function ReviewIcon({ className }: IllProps) {
+  return (
+    <svg {...iconProps} className={className}>
+      <path d="M19.6 12.6a7.7 7.7 0 1 1-2.3-5.7" />
+      <path d="M19.8 3.8v3.5h-3.5" />
+      <path d="M12 9.6c-1.6-.2-2.6-1-2.6-2 0-1.2 1.3-2 3-2 1.9 0 3.1.9 3.1 2.2 0 1-.9 1.7-2.4 2z" fill="currentColor" opacity="0.14" stroke="none" />
+    </svg>
+  );
+}
+
+/** Principle icon lookup used by the premium editorial section. */
+export const principleIconByKey: Record<string, (props: IllProps) => React.ReactElement> = {
+  flask: FlaskIcon,
+  eye: EyeIcon,
+  star: QualityIcon,
+  tag: TagIcon,
+  scale: ScaleIcon,
+  review: ReviewIcon,
+};
+
 /** Illustration renderer lookup used by category surfaces. */
 export const illustrationByKey: Record<string, (props: IllProps) => React.ReactElement> = {
   digital: DigitalIllustration,

@@ -93,7 +93,7 @@ function HealthWellness() {
         </section>
         <section className="selected-section" id="coming-soon" aria-labelledby="selected-heading"><div className="wrap"><p className="eyebrow">Coming soon</p><h2 id="selected-heading">Thoughtfully selected</h2><p className="selected-copy">We’re making space for future product cards and educational guides, selected with the same clear, useful approach you expect from TAFAT.</p><div className="future-grid"><div>Product recommendations</div><div>Educational guides</div><div>Practical resources</div></div></div></section>
       </main>
-      <footer className="footer wrap"><a className="brand" href="/"><span className="brand-mark">t</span><span>tafat</span></a><p>Good things, found thoughtfully.</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:hello@tafat.example">Contact</a></div><small>© 2026 Tafat · Affiliate relationships are disclosed clearly.</small></footer>
+      <footer className="footer wrap"><a className="brand" href="/"><span className="brand-mark">t</span><span>tafat</span></a><p>Good things, found thoughtfully.</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/editorial-standards">Editorial Standards</a><a href="mailto:hello@tafat.example">Contact</a></div><small>© 2026 Tafat · Affiliate relationships are disclosed clearly.</small></footer>
     </div>
   );
 }

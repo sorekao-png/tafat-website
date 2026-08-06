@@ -12,7 +12,7 @@ function read(rel: string): string {
 }
 
 describe("SEO production host guard", () => {
-  test("sitemap.xml contains the five expected tafat.co.uk locs in order", () => {
+  test("sitemap.xml contains the six expected tafat.co.uk locs in order", () => {
     const xml = read("public/sitemap.xml");
     const locs = [...xml.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
     expect(locs).toEqual([
@@ -21,6 +21,7 @@ describe("SEO production host guard", () => {
       `${SITE}/terms`,
       `${SITE}/health-wellness`,
       `${SITE}/health-wellness/the-complete-guide-to-magnesium`,
+      `${SITE}/editorial-standards`,
     ]);
   });
 
@@ -44,12 +45,14 @@ describe("SEO production host guard", () => {
     const terms = read("src/routes/terms.tsx");
     const health = read("src/routes/health-wellness.tsx");
     const guide = read("src/routes/health-wellness.the-complete-guide-to-magnesium.tsx");
-    const all = [root, privacy, terms, health, guide].join("\n");
+    const standards = read("src/routes/editorial-standards.tsx");
+    const all = [root, privacy, terms, health, guide, standards].join("\n");
     expect(all).toContain(`"https://tafat.co.uk/"`);
     expect(all).toContain(`"https://tafat.co.uk/privacy"`);
     expect(all).toContain(`"https://tafat.co.uk/terms"`);
     expect(all).toContain(`"https://tafat.co.uk/health-wellness"`);
     expect(all).toContain(`"https://tafat.co.uk/health-wellness/the-complete-guide-to-magnesium"`);
+    expect(all).toContain(`"https://tafat.co.uk/editorial-standards"`);
     expect(all).not.toMatch(/ctonew\.app/);
     expect(all).not.toMatch(/cto\.new/);
   });
@@ -118,5 +121,17 @@ describe("route-level head strategy (deepest matched route owns the page head)",
     expect(ld).toContain('"@type":"BreadcrumbList"');
     expect(ld).toContain('"@type":"FAQPage"');
     expect(ld).not.toContain('"@type":"CollectionPage"');
+  });
+
+  test("editorial-standards route emits exactly its own canonical plus truthful WebPage and BreadcrumbList JSON-LD", async () => {
+    const { Route: StandardsRoute } = await import("../routes/editorial-standards");
+    const head = (await headOf(StandardsRoute, ["__root", "/editorial-standards"])) as any;
+    expect(canonicalHrefs(head)).toEqual(["https://tafat.co.uk/editorial-standards"]);
+    expect(head.meta.some((m: { title?: string }) => m.title === "The TAFAT Editorial Standard | TAFAT")).toBe(true);
+    const ld = (head.scripts ?? []).map((s: { children: string }) => s.children).join("\n");
+    expect(ld).toContain('"@type":"WebPage"');
+    expect(ld).toContain('"@type":"BreadcrumbList"');
+    expect(ld).not.toContain('"@type":"Article"');
+    expect(ld).not.toContain('datePublished');
   });
 });

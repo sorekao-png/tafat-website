@@ -426,7 +426,7 @@ function Article() {
       <footer className="footer wrap">
         <a className="brand" href="/"><span className="brand-mark">t</span><span>tafat</span></a>
         <p>Good things, found thoughtfully.</p>
-        <div><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="mailto:hello@tafat.example">Contact</a></div>
+        <div><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/editorial-standards">Editorial Standards</a><a href="mailto:hello@tafat.example">Contact</a></div>
       </footer>
     </div>
   );

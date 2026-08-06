@@ -15,6 +15,7 @@ import {
   STANDARD_TITLE,
 } from "../lib/home-content";
 import { HOME_CATEGORIES } from "../lib/categories";
+import { ConsentBanner } from "../lib/consent-banner";
 import {
   EDITORIAL_INTRO,
   EDITORIAL_PRINCIPLES,
@@ -126,14 +127,4 @@ function HealthCardArt() {
       <HealthIllustration />
     </span>
   );
-}
-function ConsentBanner() {
-  const [visible, setVisible] = useState(true);
-  const choose = (value: "denied" | "analytics") => {
-    localStorage.setItem("tafat-consent-v1", value);
-    setVisible(false);
-    window.dispatchEvent(new CustomEvent("tafat-consent", { detail: value }));
-  };
-  if (!visible) return null;
-  return <aside className="consent" role="dialog" aria-label="Cookie preferences"><div><strong>Your privacy, your choice.</strong><p>We use only essential cookies in this preview. Optional analytics are off by default. See our <a href="/privacy">privacy policy</a>.</p></div><div className="consent-actions"><button className="text-button" onClick={() => choose("denied")}>No thanks</button><button className="primary-button" onClick={() => choose("analytics")}>Allow optional</button></div></aside>;
 }

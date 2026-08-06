@@ -19,7 +19,7 @@ export const EDITORIAL_SUBTITLE = "Clarity before you buy.";
 
 /** Short editorial intro shown under the subheading. */
 export const EDITORIAL_INTRO =
-  "Before anything earns a place on TAFAT, it must survive the same process: research first, recommendation second. This is the standard every guide and every find is held to.";
+  "At TAFAT, we believe every recommendation should be earned, not assumed. Our goal is not to tell you what to buy. Our goal is to help you understand why you might choose one option over another. Every article and product evaluation follows the same editorial process. We compare evidence, quality, transparency, value, and practical usefulness before making a recommendation. If we cannot confidently recommend a product based on our current evaluation, we simply won't.";
 
 /** Heading above the principle cards — exact supplied label. */
 export const PRINCIPLES_TITLE = "Our Principles";
@@ -33,57 +33,54 @@ export type EditorialPrinciple = {
   art: string;
 };
 
-/**
- * The six principles, in the exact supplied order. The names are supplied
- * copy; the explanatory text is the editorial standard each find is held to.
- */
+/** The six principles, in the exact supplied order and wording. */
 export const EDITORIAL_PRINCIPLES: readonly EditorialPrinciple[] = [
   {
     name: "Evidence First",
-    copy: "Every guide begins with evidence. We read the research, check the sources, and report what it actually shows — including when the evidence is limited.",
+    copy: "We begin with the best available evidence, not advertising claims or popularity.",
     art: "flask",
   },
   {
     name: "Transparency",
-    copy: "We say how we evaluated a product, what we looked for, and how we are compensated. If we cannot explain a recommendation, it does not get published.",
+    copy: "We explain how we reached our conclusions so readers can make informed decisions.",
     art: "eye",
   },
   {
     name: "Quality Over Hype",
-    copy: "When a claim is louder than the evidence behind it, we slow down. Strong claims without strong support do not earn a place on TAFAT.",
+    copy: "We value thoughtful formulation, honest labelling, and practical usefulness over marketing promises.",
     art: "star",
   },
   {
     name: "Value Matters",
-    copy: "A recommendation is only worth making if it is worth what it costs. We weigh price against evidence, quality, and practical usefulness.",
+    copy: "The most expensive product is not always the best.\n\nThe cheapest product is not always the best value.\n\nWe consider quality together with price.",
     art: "tag",
   },
   {
     name: "Independent Evaluation",
-    copy: "We compare every product against the alternatives before we recommend it, and we are never paid to rank anything first.",
+    copy: "Recommendations are based on our published evaluation process.\n\nAffiliate partnerships never determine our conclusions.",
     art: "scale",
   },
   {
     name: "Continuous Review",
-    copy: "Evidence changes, and so do products. We revisit our guides and reviews so recommendations stay current and honest.",
+    copy: "Science evolves.\n\nProducts change.\n\nFormulations improve.\n\nPrices change.\n\nWhen new evidence becomes available, we review our evaluations and update our recommendations when appropriate.",
     art: "review",
   },
 ] as const;
 
-/** Important note block — label and copy. */
+/** Important note block — label and exact owner-supplied copy. */
 export const IMPORTANT_NOTE_TITLE = "Important Note";
 export const IMPORTANT_NOTE_COPY =
-  "TAFAT is reader-supported. When you buy through links on this site, we may earn an affiliate commission at no additional cost to you. That never changes what we evaluate or what we recommend — the evidence and your interests come first.";
+  "TAFAT does not claim that any recommendation is the only or universally best choice.\n\nOur evaluations reflect the information available at the time of publication together with our published editorial standards.\n\nDifferent products may suit different people, health conditions, budgets, and preferences.\n\nOur goal is to provide a clear, balanced starting point so readers can make informed decisions with confidence.";
 
-/** Our Promise block — the promise copy is the exact supplied sentence. */
+/** Our Promise block — exact owner-supplied copy. */
 export const OUR_PROMISE_TITLE = "Our Promise";
 export const OUR_PROMISE_COPY =
-  "Our loyalty is to the evidence and to our readers, not to any brand, manufacturer, or affiliate programme.";
+  "We hope TAFAT becomes the last website you need to visit before making an informed purchase.\n\nNot because we ask you to trust us.\n\nBecause we show you exactly how we reached our conclusions.";
 
 /** Small footer beneath the section. */
 export const INTEGRITY_TITLE = "Editorial Integrity";
 export const INTEGRITY_DISCLOSURE =
-  "TAFAT may earn a commission from qualifying purchases made through links on this site, at no additional cost to you.";
+  "We may earn a commission when you purchase through some links on this website.\n\nThis never changes our evaluation process, our recommendations, or our commitment to honest, evidence-based reviews.";
 /** The exact final sentence of the section footer. */
 export const INTEGRITY_LOYALTY =
   "Our loyalty is to the evidence and to our readers, not to any brand, manufacturer, or affiliate programme.";

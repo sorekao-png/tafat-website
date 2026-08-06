@@ -1,5 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useLocation } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { ConsentBanner } from "../lib/consent-banner";
 import { ArtIllustration, illustrationByKey } from "../lib/illustrations";
+import { startLassoForRoute } from "../lib/lasso";
 
 const description = "Explore evidence-led guides to artist materials, studio setup, and creative practice from TAFAT.";
 const canonical = "https://tafat.co.uk/art-creative-studio";
@@ -42,6 +45,8 @@ export const Route = createFileRoute("/art-creative-studio")({
 
 function ArtCreativeStudio() {
   const Art = illustrationByKey.art;
+  const { pathname } = useLocation();
+  useEffect(() => startLassoForRoute(pathname), [pathname]);
   return <div className="site-shell">
     <header className="nav wrap"><a className="brand" href="/" aria-label="Tafat home"><span className="brand-mark">t</span><span>tafat</span></a><nav><a href="/#discover">Discover</a><a href="/health-wellness">Health &amp; Wellness</a><a href="/art-creative-studio" aria-current="page">Art &amp; Creative Studio</a><a href="/#how-we-review">Our approach</a></nav><a className="nav-pill" href="/#stay-in-loop">Sign in / join</a></header>
     <main>
@@ -50,5 +55,6 @@ function ArtCreativeStudio() {
       <section className="evaluation-section"><div className="wrap evaluation-inner"><div><p className="eyebrow">A transparent next step</p><h2>TAFAT Product Evaluations</h2><p>We are currently evaluating artist supplies using the TAFAT Editorial Standard. Recommendations will only be published after comparing quality, durability, transparency, value, and real-world performance.</p><a className="primary-button" href="/editorial-standards">Learn About Our Evaluation Process <span aria-hidden="true">→</span></a></div><span className="evaluation-art" aria-hidden="true"><ArtIllustration /></span></div></section>
     </main>
     <footer className="footer wrap"><a className="brand" href="/"><span className="brand-mark">t</span><span>tafat</span></a><p>Good things, found thoughtfully.</p><div><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/editorial-standards">Editorial Standards</a></div><small>© 2026 Tafat · Recommendations are published only after transparent evaluation.</small></footer>
+    <ConsentBanner />
   </div>;
 }

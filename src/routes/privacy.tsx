@@ -79,6 +79,14 @@ function Privacy() {
         receive a commission at no additional cost to you. We label these links
         clearly.
       </p>
+      <p>
+        On the Art &amp; Creative Studio page, affiliate links are managed with
+        the Lasso tool, which loads from js.codedrink.com only after you choose
+        “Allow optional” in the cookie notice. Lasso may use cookies or similar
+        storage to recognise clicks and attribute commissions. No products or
+        affiliate links are published in that category yet, so the tool does
+        not currently decorate any links on the page.
+      </p>
 
       <h2>Future updates</h2>
       <p>

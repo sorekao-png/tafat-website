@@ -41,12 +41,32 @@ describe("Premium editorial standard copy", () => {
     ]);
   });
 
-  test("every principle carries its explanatory copy and a resolvable icon", () => {
+  test("every principle carries the exact owner-supplied copy and a resolvable icon", () => {
+    expect(EDITORIAL_PRINCIPLES.map((p) => p.copy)).toEqual([
+      "We begin with the best available evidence, not advertising claims or popularity.",
+      "We explain how we reached our conclusions so readers can make informed decisions.",
+      "We value thoughtful formulation, honest labelling, and practical usefulness over marketing promises.",
+      "The most expensive product is not always the best.\n\nThe cheapest product is not always the best value.\n\nWe consider quality together with price.",
+      "Recommendations are based on our published evaluation process.\n\nAffiliate partnerships never determine our conclusions.",
+      "Science evolves.\n\nProducts change.\n\nFormulations improve.\n\nPrices change.\n\nWhen new evidence becomes available, we review our evaluations and update our recommendations when appropriate.",
+    ]);
     expect(EDITORIAL_PRINCIPLES.length).toBe(6);
-    for (const p of EDITORIAL_PRINCIPLES) {
-      expect(p.copy.length).toBeGreaterThan(40);
-      expect(principleIconByKey[p.art]).toBeDefined();
-    }
+    for (const p of EDITORIAL_PRINCIPLES) expect(principleIconByKey[p.art]).toBeDefined();
+  });
+
+  test("intro and all supporting blocks use exact owner-supplied copy", () => {
+    expect(EDITORIAL_INTRO).toBe(
+      "At TAFAT, we believe every recommendation should be earned, not assumed. Our goal is not to tell you what to buy. Our goal is to help you understand why you might choose one option over another. Every article and product evaluation follows the same editorial process. We compare evidence, quality, transparency, value, and practical usefulness before making a recommendation. If we cannot confidently recommend a product based on our current evaluation, we simply won't."
+    );
+    expect(IMPORTANT_NOTE_COPY).toBe(
+      "TAFAT does not claim that any recommendation is the only or universally best choice.\n\nOur evaluations reflect the information available at the time of publication together with our published editorial standards.\n\nDifferent products may suit different people, health conditions, budgets, and preferences.\n\nOur goal is to provide a clear, balanced starting point so readers can make informed decisions with confidence."
+    );
+    expect(OUR_PROMISE_COPY).toBe(
+      "We hope TAFAT becomes the last website you need to visit before making an informed purchase.\n\nNot because we ask you to trust us.\n\nBecause we show you exactly how we reached our conclusions."
+    );
+    expect(INTEGRITY_DISCLOSURE).toBe(
+      "We may earn a commission when you purchase through some links on this website.\n\nThis never changes our evaluation process, our recommendations, or our commitment to honest, evidence-based reviews."
+    );
   });
 
   test("block labels, promise copy, disclosure and loyalty sentence are exact", () => {
@@ -54,11 +74,11 @@ describe("Premium editorial standard copy", () => {
     expect(IMPORTANT_NOTE_TITLE).toBe("Important Note");
     expect(OUR_PROMISE_TITLE).toBe("Our Promise");
     expect(OUR_PROMISE_COPY).toBe(
-      "Our loyalty is to the evidence and to our readers, not to any brand, manufacturer, or affiliate programme."
+      "We hope TAFAT becomes the last website you need to visit before making an informed purchase.\n\nNot because we ask you to trust us.\n\nBecause we show you exactly how we reached our conclusions."
     );
     expect(INTEGRITY_TITLE).toBe("Editorial Integrity");
     expect(INTEGRITY_DISCLOSURE).toBe(
-      "TAFAT may earn a commission from qualifying purchases made through links on this site, at no additional cost to you."
+      "We may earn a commission when you purchase through some links on this website.\n\nThis never changes our evaluation process, our recommendations, or our commitment to honest, evidence-based reviews."
     );
     expect(INTEGRITY_LOYALTY).toBe(
       "Our loyalty is to the evidence and to our readers, not to any brand, manufacturer, or affiliate programme."

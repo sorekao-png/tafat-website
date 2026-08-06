@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ConsentBanner } from "../lib/consent-banner";
 import { ArtIllustration, illustrationByKey } from "../lib/illustrations";
 import { startLassoForRoute } from "../lib/lasso";
+import { trackEvent } from "../lib/measurement";
 
 const description = "Explore evidence-led guides to artist materials, studio setup, and creative practice from TAFAT.";
 const canonical = "https://tafat.co.uk/art-creative-studio";
@@ -46,11 +47,15 @@ export const Route = createFileRoute("/art-creative-studio")({
 function ArtCreativeStudio() {
   const Art = illustrationByKey.art;
   const { pathname } = useLocation();
-  useEffect(() => startLassoForRoute(pathname), [pathname]);
+  useEffect(() => {
+    startLassoForRoute(pathname);
+    if (pathname === "/art-creative-studio") trackEvent("art_guide_view");
+  }, [pathname]);
   return <div className="site-shell">
     <header className="nav wrap"><a className="brand" href="/" aria-label="Tafat home"><span className="brand-mark">t</span><span>tafat</span></a><nav><a href="/#discover">Discover</a><a href="/health-wellness">Health &amp; Wellness</a><a href="/art-creative-studio" aria-current="page">Art &amp; Creative Studio</a><a href="/#how-we-review">Our approach</a></nav><a className="nav-pill" href="/#stay-in-loop">Sign in / join</a></header>
     <main>
       <section className="category-hero wrap"><p className="eyebrow"><span className="spark">✦</span> TAFAT Evidence Library</p><h1>Art &amp; <em>Creative Studio</em></h1><p className="category-intro">Great art begins long before the first brush touches the canvas. Choosing quality materials, understanding how they work, and investing wisely can save frustration, improve results, and help artists create with confidence.</p><p className="affiliate-banner">Affiliate disclosure: there are no product recommendations or affiliate links in this category yet.</p></section>
+      <section className="art-guide-download wrap" aria-labelledby="art-guide-heading"><div className="art-guide-copy"><p className="eyebrow">A free illustrated guide</p><h2 id="art-guide-heading">The Art &amp; Creative Studio Guide</h2><p>Explore artist materials, studio essentials, colour, and buying decisions in one clear, visual guide. Read it online or download the complete illustrated PDF — no email required.</p><div className="art-guide-badges"><span>14 illustrated pages</span><span>Independent &amp; research-based</span><span>Free to read</span></div><div className="hero-actions"><a className="primary-button" href="/downloads/tafat-art-creative-studio-guide.pdf" download onClick={() => trackEvent("art_guide_download", { guide: "art-creative-studio" })}>Download the guide <span aria-hidden="true">↓</span></a><a className="secondary-button" href="#featured-heading">Explore the topics <span aria-hidden="true">→</span></a></div></div><div className="art-guide-booklet" aria-label="Preview of the illustrated guide"><img className="booklet-cover" src="/downloads/art-guide-pages/01_overview.png" alt="Art & Creative Studio Guide cover"/><img className="booklet-page booklet-page-one" src="/downloads/art-guide-pages/02_acrylic_paint.png" alt="Guide page about acrylic paint"/><img className="booklet-page booklet-page-two" src="/downloads/art-guide-pages/08_colour_theory.png" alt="Guide page about colour theory"/></div></section>
       <section className="category-section wrap" aria-labelledby="featured-heading"><div className="section-heading"><div><p className="eyebrow">A considered collection</p><h2 id="featured-heading">Featured Evidence Guides</h2></div></div><div className="creative-topic-grid">{topics.map(([name, copy], index) => { const Ill = index === 0 ? ArtIllustration : Art; return <article className="creative-topic-card" key={name}><span className="creative-topic-art" aria-hidden="true"><Ill /></span><div><h3>{name}</h3><p>{copy}</p><span className="coming-soon-label">Coming soon</span></div></article>; })}</div></section>
       <section className="evaluation-section"><div className="wrap evaluation-inner"><div><p className="eyebrow">A transparent next step</p><h2>TAFAT Product Evaluations</h2><p>We are currently evaluating artist supplies using the TAFAT Editorial Standard. Recommendations will only be published after comparing quality, durability, transparency, value, and real-world performance.</p><a className="primary-button" href="/editorial-standards">Learn About Our Evaluation Process <span aria-hidden="true">→</span></a></div><span className="evaluation-art" aria-hidden="true"><ArtIllustration /></span></div></section>
     </main>

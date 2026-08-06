@@ -75,7 +75,7 @@ def main() -> None:
             with pdf.open_outline() as outline:
                 for i, title in enumerate(BOOKMARKS):
                     outline.root.append(
-                        pikepdf.OutlineItem(title, pdf.pages[i], color=pikepdf.Array([0.34, 0.46, 0.36]))
+                        pikepdf.OutlineItem(title, destination=pikepdf.Array([pdf.pages[i].obj, pikepdf.Name('/Fit')]), color=(0.34, 0.46, 0.36))
                     )
         except Exception as exc:  # bookmarks are best-effort; keep metadata
             print(f"warning: outline failed ({exc}); continuing without bookmarks")

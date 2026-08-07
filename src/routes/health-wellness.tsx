@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, useRouterState } from "@tanstack/react-router";
 import { HEALTH_TOPICS } from "../lib/categories";
 import { HealthIllustration, illustrationByKey } from "../lib/illustrations";
+import { collectionPageJsonLd, ldScript } from "../lib/seo";
 
 const description =
   "Explore thoughtfully selected wellness guides, vitamins, sleep resources, hydration products, gut-health information, and practical recommendations from TAFAT.";
@@ -28,24 +29,17 @@ export const Route = createFileRoute("/health-wellness")({
       ],
       links: [{ rel: "canonical", href: CATEGORY_CANONICAL }],
       scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "CollectionPage",
+        ldScript(
+          collectionPageJsonLd({
             name: "Health & Wellness",
             description,
-            url: CATEGORY_CANONICAL,
-            isPartOf: { "@type": "WebSite", name: "TAFAT", url: "https://tafat.co.uk/" },
-            breadcrumb: {
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Home", item: "https://tafat.co.uk/" },
-                { "@type": "ListItem", position: 2, name: "Health & Wellness", item: CATEGORY_CANONICAL },
-              ],
-            },
+            path: "/health-wellness",
+            breadcrumb: [
+              { name: "Home", path: "/" },
+              { name: "Health & Wellness", path: "/health-wellness" },
+            ],
           }),
-        },
+        ),
       ],
     };
   },

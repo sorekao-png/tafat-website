@@ -11,6 +11,7 @@
     "publish": "bash ./publish.sh",
     "go-live": "bash ./go-live.sh",
     "pdf:magnesium": "bun run scripts/generate-magnesium-pdf.ts",
+    "check:seo": "bun run scripts/check-structured-data.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

@@ -34,10 +34,20 @@ import {
   PRINCIPLES_TITLE,
 } from "../lib/editorial-standard";
 import { DigitalIllustration, EditorialStandardIllustration, HealthIllustration, ShieldIcon, illustrationByKey, principleIconByKey } from "../lib/illustrations";
+import { homepageIdentityJsonLd, ldScript } from "../lib/seo";
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [{ title: "Tafat — Find something good" }],
+    meta: [
+      { title: "Tafat — Find something good" },
+      // Leaf-owns-the-head: og:url must equal this page's canonical. Other og:*
+      // defaults (og:type website, og:site_name, og:title, twitter:card) come
+      // from the root layout and are already correct for the homepage.
+      { property: "og:url", content: "https://tafat.co.uk/" },
+    ],
     links: [{ rel: "canonical", href: "https://tafat.co.uk/" }],
+    // Homepage owns the single TAFAT Organization + WebSite identity graph;
+    // all other pages reference these stable @ids instead of duplicating them.
+    scripts: [ldScript(homepageIdentityJsonLd())],
   }),
   component: Home,
 });

@@ -111,10 +111,11 @@ function Guide() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">TAFAT product evaluation</p>
-            <h2 id="vitamin-d-products">One verified option</h2>
+            <h2 id="vitamin-d-products">Two published options</h2>
           </div>
         </div>
-        <p className="guide-products-intro">This is the only vitamin D product currently published on this page. It is shown for transparent comparison, not as medical advice or a universal recommendation.</p>
+        <p className="guide-products-intro">These are the vitamin D products currently published on this page. They are shown for transparent comparison, not as medical advice or a universal recommendation.</p>
+        <p className="affiliate-note guide-products-disclosure">Affiliate link: TAFAT may earn a commission if you choose to purchase, at no extra cost to you. Product details and price may change.</p>
         <article className="product-card guide-product-card">
           <div className="guide-product-image">
             <img src="/vitamin-d/sports-research-vitamin-d3.png" alt="Sports Research Vitamin D3 5000 IU supplement" />
@@ -127,10 +128,27 @@ function Guide() {
             <small className="affiliate-note">Affiliate link: TAFAT may earn a commission if you choose to purchase, at no extra cost to you. Product details and price may change.</small>
           </div>
         </article>
-        <div className="callout guide-products-hold">
-          <h2>More formulations under review</h2>
-          <p>We are verifying additional D3 and D3 + K2 options before adding them to this comparison.</p>
-        </div>
+        <article className="product-card guide-product-card">
+          <figure className="guide-product-media">
+            <div className="guide-product-image">
+              <img src="/vitamin-d/maryruth-vitamin-d3-liquid-spray.png" alt="MaryRuth Organics Vitamin D3 liquid spray editorial illustration" />
+            </div>
+            <figcaption className="guide-product-caption">Editorial product illustration. Check current packaging and serving information at the retailer.</figcaption>
+          </figure>
+          <div className="card-body">
+            <div className="card-meta"><span>Vitamin D3</span><span className="guide-product-badge">LOWER-DOSE LIQUID OPTION</span></div>
+            <h3>MaryRuth Organics Vitamin D3 Liquid Spray</h3>
+            <p className="guide-product-desc">A lower-dose vitamin D3 in a liquid spray format, included here as a liquid-format alternative for transparent comparison — not as medical advice or a universal recommendation.</p>
+            <ul className="guide-product-bullets">
+              <li>Liquid spray format — an alternative to swallowing capsules or tablets.</li>
+              <li>Lower-dose liquid option alongside the capsule format on this page.</li>
+              <li>Shown for transparent comparison, not as a recommendation for any specific need.</li>
+            </ul>
+            <p className="guide-product-consideration">Important consideration: needs vary. Follow the current directions on the product and verify serving information on the retailer or manufacturer listing.</p>
+            <a className="primary-button guide-product-link" href="https://lasso.to/amazon/APKOj2S56Z" target="_blank" rel="sponsored nofollow noopener noreferrer">View Product &amp; Current Price</a>
+          </div>
+        </article>
+        <p className="guide-products-placeholder">Another formulation is currently under verification.</p>
       </section>
       <section className="callout">
         <h2>TAFAT Vitamin D Evaluations</h2>

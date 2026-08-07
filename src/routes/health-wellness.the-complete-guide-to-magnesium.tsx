@@ -12,6 +12,7 @@ import {
   ShieldIcon,
 } from "../lib/illustrations";
 import { articleJsonLd, breadcrumbJsonLd, faqPageJsonLd, ldScript } from "../lib/seo";
+import { trackEvent } from "../lib/measurement";
 
 const canonical = "https://tafat.co.uk/health-wellness/the-complete-guide-to-magnesium";
 const GUIDE_ROUTE_ID = "/health-wellness/the-complete-guide-to-magnesium";
@@ -196,6 +197,36 @@ function editorialBox(kind: "research" | "checklist" | "verdict", heading: strin
   );
 }
 
+type MagnesiumProduct = {
+  name: string; form: string; image: string; alt: string; facts: string; href: string;
+};
+
+const magnesiumProducts: MagnesiumProduct[] = [
+  { name: "Triple Magnesium Complex", form: "Citrate · Malate · Oxide", image: "/magnesium-products/triple.png", alt: "Editorial product illustration of a triple magnesium complex supplement", facts: "600 mg complex · 60 softgels", href: "https://lasso.to/amazon/7HfrxQuc4K" },
+  { name: "Magnesium Citrate Gummies", form: "Citrate", image: "/magnesium-products/citrate.png", alt: "Editorial product illustration of magnesium citrate gummies", facts: "200 mg per serving · 60 vegan gummies", href: "https://lasso.to/amazon/JkM4ekPyZ1" },
+  { name: "Magnesium Glycinate Gummies", form: "Glycinate · L-theanine · lemon balm", image: "/magnesium-products/glycinate.png", alt: "Editorial product illustration of magnesium glycinate gummies with L-theanine and lemon balm", facts: "60 count", href: "https://lasso.to/amazon/FcRI4wUlHI" },
+  { name: "Calcium, Magnesium, Zinc & D3", form: "Combination formulation", image: "/magnesium-products/calcium.png", alt: "Editorial product illustration of a calcium magnesium zinc and vitamin D3 supplement", facts: "90 tablets · Verify current label for exact amounts", href: "https://lasso.to/amazon/7WxyavBqnH" },
+  { name: "Magnesium Taurate", form: "Taurate", image: "/magnesium-products/taurate.png", alt: "Editorial product illustration of magnesium taurate capsules", facts: "1,900 mg compound · 150 mg elemental per serving · B6 + BioPerine · 60 capsules", href: "https://lasso.to/amazon/o2FXVEK7Gq" },
+  { name: "Magnesium Malate", form: "Malate", image: "/magnesium-products/malate.png", alt: "Editorial product illustration of magnesium malate capsules", facts: "1,500 mg compound · 300 mg elemental per serving · B6 + BioPerine · 90 capsules", href: "https://lasso.to/amazon/1IAxsFOjIP" },
+];
+const productCaption = "Editorial product illustration. Check current retailer packaging and Supplement Facts.";
+
+function MagnesiumComparison() {
+  return <section className="magnesium-comparison" id="magnesium-formulation-candidates">
+    <h2>Magnesium formulation candidates</h2>
+    <p className="comparison-subheading">A transparent starting point for comparing formulations—not a ranking or a recommendation.</p>
+    <p>These are formulation candidates for reader research, not winners. Details can change, so check the retailer page and current Supplement Facts before making a decision.</p>
+    <p className="comparison-disclosure"><strong>Affiliate disclosure:</strong> Some links below are affiliate links. If you buy through one, TAFAT may earn a commission at no additional cost to you.</p>
+    <div className="magnesium-product-grid">{magnesiumProducts.map((product) => <article className="magnesium-product-card" key={product.name}>
+      <div className="magnesium-product-image"><img src={product.image} alt={product.alt} /></div><p className="magnesium-product-caption">{productCaption}</p>
+      <h3>{product.name}</h3><p className="magnesium-product-form">{product.form}</p><p>{product.facts}</p>
+      <a href={product.href} target="_blank" rel="sponsored nofollow noopener" onClick={() => trackEvent("magnesium_product_click", { product_name: product.name, magnesium_form: product.form, article_slug: "the-complete-guide-to-magnesium", affiliate_network: "Lasso" })}>Check retailer listing</a>
+    </article>)}</div>
+    <div className="magnesium-comparison-table-wrap"><table><caption>At-a-glance formulation details</caption><thead><tr><th>Candidate</th><th>Formulation</th><th>Published details</th></tr></thead><tbody>{magnesiumProducts.map((p) => <tr key={p.name}><th scope="row">{p.name}</th><td>{p.form}</td><td>{p.facts}</td></tr>)}</tbody></table></div>
+    <div className="callout warning"><strong>Safety note</strong><p>Supplement labels and formulations may change. Check current label details, consider total intake from all sources, and ask a qualified healthcare professional about interactions or your circumstances.</p></div>
+  </section>;
+}
+
 function Article() {
   const [email, setEmail] = useState("");
 
@@ -215,6 +246,8 @@ function Article() {
     while (i < content.length) {
       const x = content[i];
       const t = x.t;
+      // Place the formulation candidates after the educational chapters and immediately before FAQ.
+      if (t === "Honest Answers to the Questions People Ask Most") segments.push(<MagnesiumComparison key="magnesium-comparison-before-faq" />);
       // Comparison table
       if (t === "At a Glance Comparison") {
         const parsed = parseComparison(i);

@@ -206,9 +206,9 @@ describe("Lasso event listener and init behavior", () => {
     };
     listener({ detail: { init } } as Event);
     expect(calls).toBe(1);
-    // The listener stays active for re-dispatches (Lasso guards its own dispatch).
+    // A successful init is idempotently guarded even if the event is re-dispatched.
     listener({ detail: { init } } as Event);
-    expect(calls).toBe(2);
+    expect(calls).toBe(1);
   });
 
   test("ignores malformed events without throwing", () => {
@@ -236,6 +236,18 @@ describe("Lasso event listener and init behavior", () => {
       } as Event),
     ).not.toThrow();
     let calls = 0;
+    listener({ detail: { init: () => calls++ } } as Event);
+    expect(calls).toBe(1);
+  });
+
+  test("initializes from the vendor payload when the ready event already fired", () => {
+    const dom = installMockDom();
+    let calls = 0;
+    (window as Window & { __LSAFF_EVT_DISPATCHED__?: boolean; LSAFFEvents?: unknown }).__LSAFF_EVT_DISPATCHED__ = true;
+    (window as Window & { LSAFFEvents?: unknown }).LSAFFEvents = { init: () => calls++ };
+    registerLassoInitOnce();
+    expect(calls).toBe(1);
+    const listener = dom.documentListeners[LASSO_READY_EVENT][0] as (e: Event) => void;
     listener({ detail: { init: () => calls++ } } as Event);
     expect(calls).toBe(1);
   });

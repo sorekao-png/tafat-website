@@ -4,6 +4,13 @@ export const Route = createFileRoute("/terms")({
     meta: [
       { title: "Terms of use — Tafat" },
       { name: "description", content: "Read the Tafat terms for using this affiliate product discovery catalog and its third-party links." },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "Terms of use — Tafat" },
+      { property: "og:description", content: "Read the Tafat terms for using this affiliate product discovery catalog and its third-party links." },
+      { property: "og:url", content: "https://tafat.co.uk/terms" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Terms of use — Tafat" },
+      { name: "twitter:description", content: "Read the Tafat terms for using this affiliate product discovery catalog and its third-party links." },
     ],
     links: [{ rel: "canonical", href: "https://tafat.co.uk/terms" }],
   }),

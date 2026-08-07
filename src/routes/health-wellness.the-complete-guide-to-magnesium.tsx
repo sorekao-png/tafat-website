@@ -11,6 +11,7 @@ import {
   ScaleIcon,
   ShieldIcon,
 } from "../lib/illustrations";
+import { articleJsonLd, breadcrumbJsonLd, faqPageJsonLd, ldScript } from "../lib/seo";
 
 const canonical = "https://tafat.co.uk/health-wellness/the-complete-guide-to-magnesium";
 const GUIDE_ROUTE_ID = "/health-wellness/the-complete-guide-to-magnesium";
@@ -53,17 +54,7 @@ for (let i = 0; i < faqBlock.length; i++) {
   }
 }
 
-const faqLd = faq.length > 0
-  ? {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faq.map((f) => ({
-        "@type": "Question",
-        name: f.question,
-        acceptedAnswer: { "@type": "Answer", text: f.answer },
-      })),
-    }
-  : null;
+const faqLd = faq.length > 0 ? faqPageJsonLd(faq) : null;
 
 export const Route = createFileRoute("/health-wellness/the-complete-guide-to-magnesium")({
   head: (ctx) => {
@@ -88,34 +79,24 @@ export const Route = createFileRoute("/health-wellness/the-complete-guide-to-mag
     ],
     links: [{ rel: "canonical", href: canonical }],
     scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
+      ldScript(
+        articleJsonLd({
           headline: "The Complete Guide to Magnesium",
           description: "An evidence-based guide to magnesium, food sources, supplement forms and safety.",
+          path: "/health-wellness/the-complete-guide-to-magnesium",
           datePublished: "2026-08-01",
           dateModified: "2026-08-01",
-          image: [HERO_IMAGE],
-          author: { "@type": "Organization", name: "TAFAT" },
-          publisher: { "@type": "Organization", name: "TAFAT", url: "https://tafat.co.uk/" },
-          mainEntityOfPage: canonical,
+          imageUrl: HERO_IMAGE,
         }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: "https://tafat.co.uk/" },
-            { "@type": "ListItem", position: 2, name: "Health & Wellness", item: "https://tafat.co.uk/health-wellness" },
-            { "@type": "ListItem", position: 3, name: "The Complete Guide to Magnesium", item: canonical },
-          ],
-        }),
-      },
-      ...(faqLd ? [{ type: "application/ld+json", children: JSON.stringify(faqLd) }] : []),
+      ),
+      ldScript(
+        breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Health & Wellness", path: "/health-wellness" },
+          { name: "The Complete Guide to Magnesium", path: "/health-wellness/the-complete-guide-to-magnesium" },
+        ]),
+      ),
+      ...(faqLd ? [ldScript(faqLd)] : []),
     ],
     };
   },

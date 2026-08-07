@@ -15,6 +15,7 @@ import {
   PRINCIPLES_TITLE,
 } from "../lib/editorial-standard";
 import { EditorialStandardIllustration, ShieldIcon, principleIconByKey } from "../lib/illustrations";
+import { ldScript, webPageJsonLd } from "../lib/seo";
 
 const CANONICAL = "https://tafat.co.uk/editorial-standards";
 const ROUTE_ID = "/editorial-standards";
@@ -42,24 +43,17 @@ export const Route = createFileRoute("/editorial-standards")({
       ],
       links: [{ rel: "canonical", href: CANONICAL }],
       scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebPage",
+        ldScript(
+          webPageJsonLd({
             name: "The TAFAT Editorial Standard",
             description: DESCRIPTION,
-            url: CANONICAL,
-            isPartOf: { "@type": "WebSite", name: "TAFAT", url: "https://tafat.co.uk/" },
-            breadcrumb: {
-              "@type": "BreadcrumbList",
-              itemListElement: [
-                { "@type": "ListItem", position: 1, name: "Home", item: "https://tafat.co.uk/" },
-                { "@type": "ListItem", position: 2, name: "Editorial Standards", item: CANONICAL },
-              ],
-            },
+            path: "/editorial-standards",
+            breadcrumb: [
+              { name: "Home", path: "/" },
+              { name: "Editorial Standards", path: "/editorial-standards" },
+            ],
           }),
-        },
+        ),
       ],
     };
   },

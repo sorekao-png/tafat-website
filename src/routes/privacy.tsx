@@ -9,6 +9,21 @@ export const Route = createFileRoute("/privacy")({
         content:
           "Learn how Tafat handles optional analytics, consent, information, cookies, and affiliate links in this static preview.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: "Privacy policy — Tafat" },
+      {
+        property: "og:description",
+        content:
+          "Learn how Tafat handles optional analytics, consent, information, cookies, and affiliate links in this static preview.",
+      },
+      { property: "og:url", content: "https://tafat.co.uk/privacy" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "Privacy policy — Tafat" },
+      {
+        name: "twitter:description",
+        content:
+          "Learn how Tafat handles optional analytics, consent, information, cookies, and affiliate links in this static preview.",
+      },
     ],
     links: [
       {

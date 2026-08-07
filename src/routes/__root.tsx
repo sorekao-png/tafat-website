@@ -40,16 +40,10 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss },
     ],
-    scripts: [{
-      type: "application/ld+json",
-      children: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        name: "Tafat",
-        url: "https://tafat.co.uk/",
-        description: "Discover thoughtfully curated digital tools and wellbeing resources.",
-      }),
-    }],
+    // Page JSON-LD is emitted by leaf routes only (leaf-owns-the-head strategy):
+    // the homepage defines the single WebSite + Organization identity in
+    // src/lib/seo.ts, and every other page references those @ids. Root scripts
+    // would concatenate onto every matched page, so none live here.
   }),
   notFoundComponent: () => <div>Page not found</div>,
   component: RootComponent,

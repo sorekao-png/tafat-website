@@ -4,9 +4,11 @@ import { ConsentBanner } from "../lib/consent-banner";
 import { ArtIllustration, illustrationByKey } from "../lib/illustrations";
 import { startLassoForRoute } from "../lib/lasso";
 import { trackEvent } from "../lib/measurement";
+import { collectionPageJsonLd, ldScript } from "../lib/seo";
 
 const description = "Explore evidence-led guides to artist materials, studio setup, and creative practice from TAFAT.";
 const canonical = "https://tafat.co.uk/art-creative-studio";
+const ROUTE_ID = "/art-creative-studio";
 const topics = [
   ["Acrylic Paint", "Clear guidance for choosing acrylics and understanding how they behave."],
   ["Watercolour", "Thoughtful notes on pigments, paper, brushes, and technique."],
@@ -19,28 +21,36 @@ const topics = [
 ] as const;
 
 export const Route = createFileRoute("/art-creative-studio")({
-  head: () => ({
-    meta: [
-      { title: "Art & Creative Studio Evidence Guides | TAFAT" },
-      { name: "description", content: description },
-      { property: "og:title", content: "Art & Creative Studio Evidence Guides | TAFAT" },
-      { property: "og:description", content: description },
-      { property: "og:url", content: canonical },
-    ],
-    links: [{ rel: "canonical", href: canonical }],
-    scripts: [{
-      type: "application/ld+json",
-      children: JSON.stringify({
-        "@context": "https://schema.org", "@type": "CollectionPage",
-        name: "Art & Creative Studio", description, url: canonical,
-        isPartOf: { "@type": "WebSite", name: "TAFAT", url: "https://tafat.co.uk/" },
-        breadcrumb: { "@type": "BreadcrumbList", itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: "https://tafat.co.uk/" },
-          { "@type": "ListItem", position: 2, name: "Art & Creative Studio", item: canonical },
-        ] },
-      }),
-    }],
-  }),
+  head: (ctx) => {
+    // Leaf-owns-the-head strategy: this category route owns the page head only
+    // when it is the deepest matched route. If a child route is ever added
+    // beneath it, the child owns the head and nothing is emitted here.
+    const isLeaf = ctx.matches[ctx.matches.length - 1]?.routeId === ROUTE_ID;
+    if (!isLeaf) return {};
+    return {
+      meta: [
+        { title: "Art & Creative Studio Evidence Guides | TAFAT" },
+        { name: "description", content: description },
+        { property: "og:title", content: "Art & Creative Studio Evidence Guides | TAFAT" },
+        { property: "og:description", content: description },
+        { property: "og:url", content: canonical },
+      ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [
+        ldScript(
+          collectionPageJsonLd({
+            name: "Art & Creative Studio",
+            description,
+            path: "/art-creative-studio",
+            breadcrumb: [
+              { name: "Home", path: "/" },
+              { name: "Art & Creative Studio", path: "/art-creative-studio" },
+            ],
+          }),
+        ),
+      ],
+    };
+  },
   component: ArtCreativeStudio,
 });
 

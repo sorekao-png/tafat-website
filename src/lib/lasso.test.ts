@@ -5,10 +5,9 @@ import {
   LASSO_READY_EVENT,
   LASSO_SNIPPET_URL,
   handleLassoConsent,
-  isLassoRoute,
   loadLassoScriptOnce,
   registerLassoInitOnce,
-  startLassoForRoute,
+  startLasso,
 } from "./lasso";
 
 /** Fresh window/document mocks per test, mirroring measurement.test.ts style. */
@@ -59,24 +58,25 @@ function installMockDom(getItem: () => string | null = () => null) {
   };
 }
 
-describe("Lasso route scope", () => {
-  test("isLassoRoute matches only the exact art-creative-studio route", () => {
-    expect(isLassoRoute("/art-creative-studio")).toBe(true);
-    expect(isLassoRoute("/art-creative-studio/")).toBe(true);
-    expect(isLassoRoute("/")).toBe(false);
-    expect(isLassoRoute("")).toBe(false);
-    expect(isLassoRoute("/health-wellness")).toBe(false);
-    expect(isLassoRoute("/art-creative-studio-guide")).toBe(false);
-    expect(isLassoRoute("/art-creative-studio/materials")).toBe(false);
+describe("Lasso global wiring", () => {
+  test("the root layout mounts the consent-gated Lasso boundary", () => {
+    const root = readFileSync(join(process.cwd(), "src/routes/__root.tsx"), "utf8");
+    expect(root).toContain('from "~/lib/lasso"');
+    expect(root).toContain("startLasso");
+    expect(root).toContain("ConsentAwareLasso");
   });
 
-  test("only the art route wires the consent-gated Lasso boundary", () => {
-    const routesDir = join(process.cwd(), "src/routes");
-    const art = readFileSync(join(routesDir, "art-creative-studio.tsx"), "utf8");
-    expect(art).toContain("startLassoForRoute");
+  test("the art route no longer starts Lasso itself", () => {
+    const art = readFileSync(join(process.cwd(), "src/routes/art-creative-studio.tsx"), "utf8");
+    expect(art).not.toContain("lib/lasso");
+    expect(art).not.toContain("startLasso");
+    expect(art).not.toContain("Lasso");
     expect(art).toContain("<ConsentBanner />");
+  });
+
+  test("no route other than the root layout loads Lasso", () => {
+    const routesDir = join(process.cwd(), "src/routes");
     const otherRoutes = [
-      "__root.tsx",
       "index.tsx",
       "privacy.tsx",
       "terms.tsx",
@@ -87,10 +87,10 @@ describe("Lasso route scope", () => {
     ];
     for (const file of otherRoutes) {
       const src = readFileSync(join(routesDir, file), "utf8");
-      // The Lasso boundary must only be wired from the art route: no other
-      // route may import the loader or mount the consent-gated boundary.
+      // The consent-gated boundary lives only in the root layout: no other
+      // route may import the loader or inject the snippet.
       expect(src).not.toContain("lib/lasso");
-      expect(src).not.toContain("startLassoForRoute");
+      expect(src).not.toContain("startLasso");
       expect(src).not.toContain(LASSO_SNIPPET_URL);
     }
     // The privacy page may *describe* the Lasso tool in its disclosure text,
@@ -124,25 +124,25 @@ describe("Lasso consent gating", () => {
     expect(dom.documentListeners[LASSO_READY_EVENT]).toHaveLength(1);
   });
 
-  test("startLassoForRoute ignores non-scoped routes even with stored consent", () => {
+  test("startLasso applies stored consent immediately on every route", () => {
     const dom = installMockDom(() => "analytics");
-    const cleanup = startLassoForRoute("/");
-    expect(dom.appended).toHaveLength(0);
-    expect(dom.windowListeners["tafat-consent"] ?? []).toHaveLength(0);
-    cleanup();
-  });
-
-  test("startLassoForRoute applies stored consent immediately on the art route", () => {
-    const dom = installMockDom(() => "analytics");
-    const cleanup = startLassoForRoute("/art-creative-studio");
+    const cleanup = startLasso();
     expect(dom.appended).toHaveLength(1);
     expect(dom.windowListeners["tafat-consent"]).toHaveLength(1);
     cleanup();
   });
 
-  test("startLassoForRoute follows later consent choices and never duplicates", () => {
+  test("startLasso stays off without stored consent or after rejection", () => {
+    const dom = installMockDom(() => "denied");
+    const cleanup = startLasso();
+    expect(dom.appended).toHaveLength(0);
+    expect(dom.documentListeners[LASSO_READY_EVENT] ?? []).toHaveLength(0);
+    cleanup();
+  });
+
+  test("startLasso follows later consent choices and never duplicates", () => {
     const dom = installMockDom(() => null); // no stored choice yet
-    const cleanup = startLassoForRoute("/art-creative-studio");
+    const cleanup = startLasso();
     expect(dom.appended).toHaveLength(0);
     const listeners = dom.windowListeners["tafat-consent"];
     expect(listeners).toHaveLength(1);
@@ -164,6 +164,31 @@ describe("Lasso consent gating", () => {
     // Cleanup removes the window listener
     cleanup();
     expect(dom.windowListeners["tafat-consent"]).toHaveLength(0);
+  });
+
+  test("duplicate startLasso mounts register one listener and one script", () => {
+    const dom = installMockDom(() => "analytics");
+    const cleanupA = startLasso();
+    const cleanupB = startLasso(); // second mount must be a no-op
+    expect(dom.windowListeners["tafat-consent"]).toHaveLength(1);
+    expect(dom.appended).toHaveLength(1);
+    cleanupA();
+    cleanupB(); // no-op cleanup is safe
+    expect(dom.windowListeners["tafat-consent"]).toHaveLength(0);
+  });
+
+  test("restart after cleanup re-wires without duplicating the script", () => {
+    const dom = installMockDom(() => "analytics");
+    const cleanupA = startLasso();
+    expect(dom.appended).toHaveLength(1);
+    cleanupA();
+    // A re-mount (e.g. StrictMode double-effect) wires the listener again but
+    // the once-only guards keep a single script and single ready listener.
+    const cleanupB = startLasso();
+    expect(dom.windowListeners["tafat-consent"]).toHaveLength(1);
+    expect(dom.appended).toHaveLength(1);
+    expect(dom.documentListeners[LASSO_READY_EVENT]).toHaveLength(1);
+    cleanupB();
   });
 });
 
@@ -222,6 +247,22 @@ describe("Lasso event listener and init behavior", () => {
     expect(() => listener({ detail: { init: "not-a-function" } } as Event)).not.toThrow();
   });
 
+  test("invokes init with the vendor payload as `this`, as e.detail.init() does", () => {
+    const dom = installMockDom();
+    registerLassoInitOnce();
+    const listener = dom.documentListeners[LASSO_READY_EVENT][0] as (e: Event) => void;
+    let seen: unknown;
+    const payload = {
+      marker: "lasso-payload",
+      init(this: { marker: string }) {
+        seen = this.marker;
+      },
+    };
+    listener({ detail: payload } as Event);
+    expect(seen).toBe("lasso-payload");
+    expect((window as Window & { __tafatLassoInitialized?: boolean }).__tafatLassoInitialized).toBe(true);
+  });
+
   test("a throwing init is contained and later valid inits still run", () => {
     const dom = installMockDom();
     registerLassoInitOnce();
@@ -250,5 +291,22 @@ describe("Lasso event listener and init behavior", () => {
     const listener = dom.documentListeners[LASSO_READY_EVENT][0] as (e: Event) => void;
     listener({ detail: { init: () => calls++ } } as Event);
     expect(calls).toBe(1);
+  });
+
+  test("replays init when the vendor attaches init after dispatching", async () => {
+    const dom = installMockDom();
+    (window as Window & { __LSAFF_EVT_DISPATCHED__?: boolean; LSAFFEvents?: unknown }).__LSAFF_EVT_DISPATCHED__ = true;
+    (window as Window & { LSAFFEvents?: unknown }).LSAFFEvents = {}; // no init yet
+    let calls = 0;
+    registerLassoInitOnce();
+    expect(calls).toBe(0);
+    // The vendor payload gains init shortly after the event was dispatched.
+    setTimeout(() => {
+      (window as Window & { LSAFFEvents?: unknown }).LSAFFEvents = { init: () => calls++ };
+    }, 100);
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    expect(calls).toBe(1);
+    // The replay is one-shot: the same late init never runs twice.
+    expect((window as Window & { __tafatLassoInitialized?: boolean }).__tafatLassoInitialized).toBe(true);
   });
 });

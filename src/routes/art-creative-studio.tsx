@@ -2,7 +2,6 @@ import { createFileRoute, useLocation } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ConsentBanner } from "../lib/consent-banner";
 import { ArtIllustration, illustrationByKey } from "../lib/illustrations";
-import { startLassoForRoute } from "../lib/lasso";
 import { trackEvent } from "../lib/measurement";
 import { collectionPageJsonLd, ldScript } from "../lib/seo";
 
@@ -58,7 +57,6 @@ function ArtCreativeStudio() {
   const Art = illustrationByKey.art;
   const { pathname } = useLocation();
   useEffect(() => {
-    startLassoForRoute(pathname);
     if (pathname === "/art-creative-studio") trackEvent("art_guide_view");
   }, [pathname]);
   return <div className="site-shell">

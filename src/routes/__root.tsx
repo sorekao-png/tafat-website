@@ -18,6 +18,7 @@ import {
   runGa4Onload,
   updateGoogleConsent,
 } from "~/lib/measurement";
+import { startLasso } from "~/lib/lasso";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -54,8 +55,19 @@ function RootComponent() {
     <RootDocument>
       <Outlet />
       <ConsentAwareMeasurement />
+      <ConsentAwareLasso />
     </RootDocument>
   );
+}
+
+function ConsentAwareLasso() {
+  useEffect(() => {
+    // Global, consent-gated Lasso boundary: mounted once for every route.
+    // No script is loaded before optional consent or after rejection; the
+    // startLasso guard makes repeated mounts harmless.
+    return startLasso();
+  }, []);
+  return null;
 }
 
 function ConsentAwareMeasurement() {

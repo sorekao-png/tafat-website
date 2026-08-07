@@ -107,6 +107,31 @@ function Guide() {
         <a href="#verdict">The Honest Verdict</a>
       </nav>
       <ArticleBody open={open} setOpen={setOpen} />
+      <section className="guide-products" aria-labelledby="vitamin-d-products">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">TAFAT product evaluation</p>
+            <h2 id="vitamin-d-products">One verified option</h2>
+          </div>
+        </div>
+        <p className="guide-products-intro">This is the only vitamin D product currently published on this page. It is shown for transparent comparison, not as medical advice or a universal recommendation.</p>
+        <article className="product-card guide-product-card">
+          <div className="guide-product-image">
+            <img src="/vitamin-d/sports-research-vitamin-d3.png" alt="Sports Research Vitamin D3 5000 IU supplement" />
+          </div>
+          <div className="card-body">
+            <div className="card-meta"><span>Vitamin D3</span><span>Verified variant</span></div>
+            <h3>Sports Research Vitamin D3</h3>
+            <p>5,000 IU / 125 mcg · 360 softgels</p>
+            <a className="primary-button guide-product-link" href="https://lasso.to/amazon/vqiM7WN6Kq" target="_blank" rel="nofollow sponsored noopener noreferrer">View Product &amp; Current Price</a>
+            <small className="affiliate-note">Affiliate link: TAFAT may earn a commission if you choose to purchase, at no extra cost to you. Product details and price may change.</small>
+          </div>
+        </article>
+        <div className="callout guide-products-hold">
+          <h2>More formulations under review</h2>
+          <p>We are verifying additional D3 and D3 + K2 options before adding them to this comparison.</p>
+        </div>
+      </section>
       <section className="callout">
         <h2>TAFAT Vitamin D Evaluations</h2>
         <p>We are currently evaluating vitamin D products using our published standards for evidence, formulation, transparency, safety, and value. Recommendations will be added only when a product meets the TAFAT Editorial Standard.</p>

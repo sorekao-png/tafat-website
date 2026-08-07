@@ -4,6 +4,9 @@ declare global {
   interface Window {
     __tafatLassoLoaded?: boolean;
     __tafatLassoInitRegistered?: boolean;
+    __tafatLassoInitialized?: boolean;
+    __LSAFF_EVT_DISPATCHED__?: boolean;
+    LSAFFEvents?: unknown;
   }
 }
 
@@ -33,6 +36,27 @@ function initFromDetail(detail: unknown): (() => void) | null {
   return null;
 }
 
+function runInit(detail: unknown): boolean {
+  if (typeof window === "undefined" || window.__tafatLassoInitialized) return false;
+  const init = initFromDetail(detail);
+  if (!init) return false;
+  try {
+    init();
+    window.__tafatLassoInitialized = true;
+    return true;
+  } catch (error) {
+    if (typeof console !== "undefined") console.error("[TAFAT-LASSO] init failed", error);
+    return false;
+  }
+}
+
+function runAlreadyDispatchedInit(): boolean {
+  if (typeof window === "undefined") return false;
+  // The owner snippet marks this when it has already dispatched the event.
+  // Its public event payload is also exposed as LSAFFEvents.
+  return window.__LSAFF_EVT_DISPATCHED__ === true && runInit(window.LSAFFEvents);
+}
+
 /**
  * Register the LSAFFEventLoaded listener exactly once per page load.
  * The listener calls `e.detail.init()` exactly as the owner's integration
@@ -44,16 +68,12 @@ export function registerLassoInitOnce(): boolean {
   if (window.__tafatLassoInitRegistered) return false;
   window.__tafatLassoInitRegistered = true;
   document.addEventListener(LASSO_READY_EVENT, (event) => {
-    const init = initFromDetail((event as CustomEvent).detail);
-    if (!init) return;
-    try {
-      init();
-    } catch (error) {
-      if (typeof console !== "undefined") {
-        console.error("[TAFAT-LASSO] init failed", error);
-      }
-    }
+    runInit((event as CustomEvent).detail);
   });
+  // Registering after the vendor has dispatched would otherwise miss the
+  // owner's one-shot event. This remains consent-gated because callers only
+  // invoke registration after optional consent.
+  runAlreadyDispatchedInit();
   return true;
 }
 

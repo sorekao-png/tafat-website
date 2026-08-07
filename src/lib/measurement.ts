@@ -137,7 +137,7 @@ export function sendGooglePageView(measurementId: string) {
   });
 }
 /** Consent-aware, vendor-neutral event boundary. No event is emitted before analytics opt-in. */
-export function trackEvent(name: "art_guide_view" | "art_guide_download" | "art_guide_product_click", params: Record<string, string> = {}) {
+export function trackEvent(name: "art_guide_view" | "art_guide_download" | "art_guide_product_click" | "magnesium_product_click", params: Record<string, string> = {}) {
   if (typeof window === "undefined" || readConsent() !== "analytics") return false;
   const payload = { ...params, page_path: window.location.pathname };
   window.dataLayer?.push({ event: name, ...payload });

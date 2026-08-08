@@ -13,14 +13,18 @@ import { useEffect, useRef, useState } from "react";
  *   - The whole decorative stage is aria-hidden (screen readers never see it).
  *   - A poster paints immediately: the inline SVG today, or the owner's poster
  *     image once HERO_MEDIA.poster is set. The poster never waits for motion.
- *   - Motion (video / animated image / frame sequence) is never fetched
- *     up-front: video uses preload="metadata", images use loading="lazy", and
- *     the element only mounts after the browser is idle AND the stage is near
- *     the viewport, and only when the user has not requested reduced motion and
- *     the screen is not a phone. It therefore can never block LCP.
+ *   - Motion (video) mounts immediately after the initial client render — no
+ *     idle-callback or in-view deferral (owner spec: the desktop sequence must
+ *     run automatically, right away). The poster <img> still owns the first
+ *     paint (eager + fetchPriority=high) and sits beneath the video; once the
+ *     video reports `playing`, the poster is hidden so there is no double paint,
+ *     and on video error the video element is removed so the poster is the
+ *     visible fallback.
  *   - prefers-reduced-motion -> poster only (JS gate below + CSS belt-and-braces
  *     in app.css).
  *   - <=760px viewports -> poster only (or HERO_MEDIA.mobileImage when set).
+ *     Desktop widths above 760px always get the video (a moderately narrow
+ *     desktop is NOT treated as mobile).
  *   - The stage keeps aspect-ratio 560/470 and every media layer uses
  *     object-fit: contain, so the central gold drop is never cropped
  *     (letterboxed, never clipped).
@@ -108,33 +112,81 @@ function HeroPoster() {
 }
 
 /**
- * Motion layer: only rendered once mounted (idle + in-view + motion allowed).
- * Playback semantics per owner spec: muted autoplay, playsinline, preload only
- * metadata, no controls, NO loop — plays once and holds the final frame (the
- * poster <img> beneath is the immediate paint and the failure fallback).
+ * Motion layer: only rendered once mounted (environment resolved + motion
+ * allowed — desktop, no reduced motion). Playback semantics per owner spec:
+ * muted autoplay, playsinline, no controls, NO loop — plays once from t=0 and
+ * holds the final frame at `ended`. The poster <img> beneath is the immediate
+ * paint and the failure fallback.
  */
-function HeroMotion({ mode }: { mode: Exclude<HeroMotionMode, "none"> }) {
+function HeroVideo({ onStateChange }: { onStateChange: (s: HeroVideoState) => void }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Owner spec: explicitly set currentTime = 0 before calling play(), and
+  // swallow a rejected play() promise so an autoplay block (or slow data)
+  // never surfaces as an unhandled error — the poster simply stays visible.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    let cancelled = false;
+    try {
+      v.currentTime = 0;
+    } catch {
+      // Media not ready yet; play() below (or the canplay retry) resets it.
+    }
+    const tryPlay = () => {
+      if (cancelled || !v.paused) return;
+      const p = v.play();
+      if (p && typeof p.catch === "function") p.catch(() => {});
+    };
+    tryPlay();
+    // If play() ran before enough data was buffered, retry once data is ready.
+    v.addEventListener("canplay", tryPlay);
+    return () => {
+      cancelled = true;
+      v.removeEventListener("canplay", tryPlay);
+    };
+  }, []);
+
+  return (
+    <video
+      ref={videoRef}
+      className="drip-motion-video"
+      autoPlay
+      muted
+      playsInline
+      preload="auto"
+      poster={HERO_MEDIA.poster}
+      aria-hidden="true"
+      tabIndex={-1}
+      onPlaying={() => onStateChange("playing")}
+      onError={() => onStateChange("error")}
+    >
+      {HERO_MEDIA.video.webm && <source src={HERO_MEDIA.video.webm} type="video/webm" />}
+      {HERO_MEDIA.video.mp4 && <source src={HERO_MEDIA.video.mp4} type="video/mp4" />}
+    </video>
+  );
+}
+
+function HeroMotion({ mode, onVideoState }: { mode: Exclude<HeroMotionMode, "none">; onVideoState: (s: HeroVideoState) => void }) {
   if (mode === "video") {
     return (
-      <video
-        className="drip-motion-video"
-        autoPlay
-        muted
-        playsInline
-        preload="metadata"
-        poster={HERO_MEDIA.poster}
-        aria-hidden="true"
-        tabIndex={-1}
-      >
-        {HERO_MEDIA.video.webm && <source src={HERO_MEDIA.video.webm} type="video/webm" />}
-        {HERO_MEDIA.video.mp4 && <source src={HERO_MEDIA.video.mp4} type="video/mp4" />}
-      </video>
+      <div className="drip-motion">
+        <HeroVideo onStateChange={onVideoState} />
+      </div>
     );
   }
   if (mode === "animatedImage") {
-    return <img className="drip-motion-img" src={HERO_MEDIA.animatedImage} alt="" loading="lazy" decoding="async" />;
+    return (
+      <div className="drip-motion">
+        <img className="drip-motion-img" src={HERO_MEDIA.animatedImage} alt="" loading="lazy" decoding="async" />
+      </div>
+    );
   }
-  return <HeroFrameSequence frames={HERO_MEDIA.frames} />;
+  return (
+    <div className="drip-motion">
+      <HeroFrameSequence frames={HERO_MEDIA.frames} />
+    </div>
+  );
 }
 
 /** JS-driven image sequence (~30fps). Last-resort motion source. */
@@ -165,6 +217,8 @@ function HeroFrameSequence({ frames }: { frames: HeroFrameSequence }) {
   );
 }
 
+export type HeroVideoState = "idle" | "playing" | "error";
+
 /**
  * The decorative hero stage. Replaces the inline `.drip-stage` block in
  * index.tsx; renders PR #30's exact markup when HERO_MEDIA is empty.
@@ -173,16 +227,21 @@ export function HeroArtwork() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [videoState, setVideoState] = useState<HeroVideoState>("idle");
 
   // Client-only environment detection. SSR and the first client render both
   // start with motion disabled, so server/client markup always matches.
+  // Once the environment is known, the motion layer mounts immediately — no
+  // idle-callback or in-view deferral (owner spec: automatic desktop sequence).
   useEffect(() => {
     const mqReduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const mqMobile = window.matchMedia("(max-width: 760px)");
     const update = () => {
-      setPrefersReducedMotion(mqReduced.matches);
-      setIsMobile(mqMobile.matches);
+      const reduced = mqReduced.matches;
+      const mobile = mqMobile.matches;
+      setPrefersReducedMotion(reduced);
+      setIsMobile(mobile);
+      setMounted(resolveHeroMotion(HERO_MEDIA, { reducedMotion: reduced, isMobile: mobile }) !== "none");
     };
     update();
     mqReduced.addEventListener("change", update);
@@ -196,54 +255,14 @@ export function HeroArtwork() {
   const motionMode = resolveHeroMotion(HERO_MEDIA, { reducedMotion: prefersReducedMotion, isMobile });
   const motionReady = motionMode !== "none";
 
-  // Defer mounting the motion layer until the main thread is idle AND the stage
-  // is near the viewport, so hero motion can never delay LCP or first paint.
-  useEffect(() => {
-    if (!motionReady) return;
-    const el = stageRef.current;
-    if (!el) return;
-    let cancelled = false;
-    let observer: IntersectionObserver | null = null;
-    let idleHandle: number | null = null;
-
-    const armObserver = () => {
-      if (cancelled) return;
-      observer = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) {
-            setMounted(true);
-            observer?.disconnect();
-          }
-        },
-        { rootMargin: "200px 0px" },
-      );
-      observer.observe(el);
-    };
-
-    if (typeof window.requestIdleCallback === "function") {
-      idleHandle = window.requestIdleCallback(armObserver, { timeout: 2500 });
-    } else {
-      idleHandle = window.setTimeout(armObserver, 300);
-    }
-
-    return () => {
-      cancelled = true;
-      if (idleHandle !== null) {
-        if (typeof window.requestIdleCallback === "function") window.cancelIdleCallback(idleHandle);
-        else window.clearTimeout(idleHandle);
-      }
-      observer?.disconnect();
-    };
-  }, [motionReady]);
-
   return (
-    <div className="drip-stage" aria-hidden="true" ref={stageRef}>
+    <div className="drip-stage" aria-hidden="true" data-video-state={videoState}>
       <span className="drip-fragment fragment-one">EVIDENCE</span>
       <span className="drip-fragment fragment-two">QUALITY</span>
       <span className="drip-fragment fragment-three">VALUE</span>
       <span className="drip-fragment fragment-four">COMPARE</span>
       <HeroPoster />
-      {motionReady && mounted && <HeroMotion mode={motionMode} />}
+      {motionReady && mounted && <HeroMotion mode={motionMode} onVideoState={setVideoState} />}
     </div>
   );
 }

@@ -14,20 +14,20 @@ import { useEffect, useRef, useState } from "react";
  *   - A poster paints immediately: the inline SVG today, or the owner's poster
  *     image once HERO_MEDIA.poster is set. The poster never waits for motion.
  *   - Motion (video / animated image / frame sequence) is never fetched
- *     up-front: video uses preload="none", images use loading="lazy", and the
- *     element only mounts after the browser is idle AND the stage is near the
- *     viewport, and only when the user has not requested reduced motion and the
- *     screen is not a phone. It therefore can never block LCP.
+ *     up-front: video uses preload="metadata", images use loading="lazy", and
+ *     the element only mounts after the browser is idle AND the stage is near
+ *     the viewport, and only when the user has not requested reduced motion and
+ *     the screen is not a phone. It therefore can never block LCP.
  *   - prefers-reduced-motion -> poster only (JS gate below + CSS belt-and-braces
  *     in app.css).
  *   - <=760px viewports -> poster only (or HERO_MEDIA.mobileImage when set).
- *   - The stage keeps aspect-ratio 560/470. The poster (a 16:9 cinematic frame)
- *     deliberately fills the elliptical stage with object-fit: cover and
- *     object-position 62% 50% — the horizontal crop keeps the gold drop/ripple
- *     on the right and the dark negative space on the left (see app.css).
- *     Motion layers keep object-fit: contain so the drop is never cropped.
- *   - No external dependency: the poster is a static file served from the site
- *     itself (public/hero/hero-poster.webp).
+ *   - The stage keeps aspect-ratio 560/470 and every media layer uses
+ *     object-fit: contain, so the central gold drop is never cropped
+ *     (letterboxed, never clipped).
+ *   - No external dependency. With HERO_MEDIA empty the rendered markup is
+ *     identical to PR #30 (inline SVG fallback poster). The owner-approved
+ *     Kling 3 Omni production package (WebM/MP4 + JPG poster) is wired below —
+ *     preview chain only, nothing merges to production main.
  */
 
 export type HeroVideoSources = { webm: string; mp4: string };
@@ -47,16 +47,20 @@ export type HeroMediaConfig = {
 };
 
 /**
- * SINGLE SWAP POINT — the owner-approved cinematic poster (16:9, left dark
- * negative space, gold drop/ripple on the right) is wired in as the static
- * poster. Motion is NOT configured yet: video/animatedImage/frames stay empty
- * (the future WebM/MP4 slot is intact but unfilled — progressive enhancement
- * only). To swap back to the PR #30 prototype, empty `poster` again.
- * See /home/team/shared/hero-media-layer-design.md for the full asset spec.
+ * SINGLE SWAP POINT — the owner-approved Kling 3 Omni production package
+ * (2026-08-08) is wired here, preview-only. Files live under public/media/ and
+ * are served from the site root: WebM preferred, MP4 fallback, JPG poster.
+ * The videos have no audio track; playback runs once (no loop) and holds the
+ * final frame. Leave everything empty to keep the PR #30 prototype exactly as
+ * approved. See /home/team/shared/hero-media-layer-design.md for the boundary
+ * spec and /home/team/shared/hero-preview-final/ for the visual record.
  */
 export const HERO_MEDIA: HeroMediaConfig = {
-  poster: "/hero/hero-poster.webp",
-  video: { webm: "", mp4: "" },
+  poster: "/media/tafat-drip-discovery-poster.jpg",
+  video: {
+    webm: "/media/tafat-drip-discovery-hero.webm",
+    mp4: "/media/tafat-drip-discovery-hero.mp4",
+  },
   animatedImage: "",
   frames: { base: "", count: 0, ext: "webp" },
   mobileImage: "",
@@ -98,16 +102,30 @@ function HeroPoster() {
   return (
     <picture className="drip-poster">
       {mobileImage && <source media="(max-width: 760px)" srcSet={mobileImage} />}
-      <img src={poster} alt="" width={1200} height={675} loading="eager" fetchPriority="high" decoding="async" />
+      <img src={poster} alt="" width={1920} height={1080} loading="eager" fetchPriority="high" decoding="async" />
     </picture>
   );
 }
 
-/** Motion layer: only rendered once mounted (idle + in-view + motion allowed). */
+/**
+ * Motion layer: only rendered once mounted (idle + in-view + motion allowed).
+ * Playback semantics per owner spec: muted autoplay, playsinline, preload only
+ * metadata, no controls, NO loop — plays once and holds the final frame (the
+ * poster <img> beneath is the immediate paint and the failure fallback).
+ */
 function HeroMotion({ mode }: { mode: Exclude<HeroMotionMode, "none"> }) {
   if (mode === "video") {
     return (
-      <video className="drip-motion-video" autoPlay muted loop playsInline preload="none" aria-hidden="true" tabIndex={-1}>
+      <video
+        className="drip-motion-video"
+        autoPlay
+        muted
+        playsInline
+        preload="metadata"
+        poster={HERO_MEDIA.poster}
+        aria-hidden="true"
+        tabIndex={-1}
+      >
         {HERO_MEDIA.video.webm && <source src={HERO_MEDIA.video.webm} type="video/webm" />}
         {HERO_MEDIA.video.mp4 && <source src={HERO_MEDIA.video.mp4} type="video/mp4" />}
       </video>

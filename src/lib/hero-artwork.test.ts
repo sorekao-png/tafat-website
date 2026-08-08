@@ -48,3 +48,23 @@ describe("resolveHeroMotion", () => {
     expect(resolveHeroMotion(withFrames, { reducedMotion: false, isMobile: true })).toBe("none");
   });
 });
+
+describe("HERO_MEDIA live config (feat/cinematic-poster-preview)", () => {
+  test("poster is wired to the optimized static asset", () => {
+    expect(HERO_MEDIA.poster).toBe("/hero/hero-poster.webp");
+  });
+
+  test("future motion slots are intact but empty (poster-only preview)", () => {
+    expect(HERO_MEDIA.video.webm).toBe("");
+    expect(HERO_MEDIA.video.mp4).toBe("");
+    expect(HERO_MEDIA.animatedImage).toBe("");
+    expect(HERO_MEDIA.frames.count).toBe(0);
+    expect(HERO_MEDIA.frames.base).toBe("");
+  });
+
+  test("poster-only config still resolves to no motion on desktop", () => {
+    expect(resolveHeroMotion(HERO_MEDIA, { reducedMotion: false, isMobile: false })).toBe("none");
+    expect(resolveHeroMotion(HERO_MEDIA, { reducedMotion: true, isMobile: false })).toBe("none");
+    expect(resolveHeroMotion(HERO_MEDIA, { reducedMotion: false, isMobile: true })).toBe("none");
+  });
+});

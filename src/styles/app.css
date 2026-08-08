@@ -891,27 +891,15 @@ a.topic-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); 
 @media (prefers-reduced-motion: reduce) { .drip-drop,.drip-ripple,.drip-ripple-wide,.drip-orbit,.drip-mark,.drip-spark,.drip-motif,.drip-fragment { animation:none; opacity:1; filter:none; transform:none; } .drip-drop { transform:scale(.82); } .drip-ripple { opacity:.28; } .drip-fragment { opacity:.38; } }
 @media (max-width:760px) { .hero-drip { display:block; min-height:0; padding-top:58px; padding-bottom:58px; } .hero-drip-copy { max-width:none; } .hero-drip h1 { font-size:clamp(46px, 14vw, 64px); } .hero-drip-subhead { font-size:23px; max-width:460px; } .hero-drip-supporting { font-size:15px; } .hero-drip .hero-actions { margin-top:24px; } .drip-stage { margin:25px auto 0; width:100%; max-width:480px; } .drip-fragment { font-size:8px; } .fragment-one { left:14%; top:31%; }.fragment-two { right:13%; top:35%; }.fragment-three { left:21%; bottom:22%; }.fragment-four { display:none; } .drip-motif { transform:scale(.92); transform-origin:center; } }
 
-/* Hero media layer (feat/hero-media-layer + fix/cinematic-hero-playback):
-   poster-first, motion mounts immediately after first render (no idle/in-view
-   deferral — owner spec). With an empty HERO_MEDIA config this CSS is inert —
-   PR #30 markup is unchanged. The owner-approved Kling 3 Omni package (16:9
-   WebM/MP4 + JPG poster) letterboxes with contain/center (never crops the gold
-   drop), plays once (no loop), and the poster <img> beneath is the failure
-   fallback. */
-.drip-poster, .drip-motion { position:absolute; inset:0; z-index:0; width:100%; height:100%; border-radius:50%; }
-.drip-poster img, .drip-motion-video, .drip-motion-img, .drip-motion-seq { width:100%; height:100%; object-fit:contain; object-position:center; }
-/* Motion paints above the poster but below the HTML fragments (z-index:1):
-   .drip-motion comes after .drip-poster in DOM order, both z-index:0, so the
-   video layer stacks on top of the poster fallback. */
-.drip-motion { z-index:0; }
-/* Once the video actually reports `playing`, drop the poster img beneath it
-   (no double paint); the video's own frames take over and the final frame is
-   held at `ended` (no loop). On video error, remove the video element from
-   view so the poster img beneath is the visible fallback. */
-.drip-poster { transition: opacity .25s ease; }
-.drip-stage[data-video-state="playing"] .drip-poster { opacity:0; }
-.drip-stage[data-video-state="error"] .drip-motion-video { display:none; }
-/* Belt-and-braces: even if the JS gate ever mis-fires, motion never runs for
-   reduced-motion users or phones — poster only. */
-@media (prefers-reduced-motion: reduce) { .drip-motion { display:none; } }
-@media (max-width: 760px) { .drip-motion { display:none; } }
+/* Hero media layer (fix/cinematic-hero-plain-video):
+   ONE plain HTML5 video occupies the stage. The `poster` attribute paints the
+   owner-approved frame immediately; the browser swaps to live frames as soon
+   as data is ready. No separate poster element, no opacity/display/z-index
+   switching, no JS gates, no delayed mount. Mobile (<=760px) and
+   prefers-reduced-motion stay poster-only via pure CSS: the video is
+   display:none and the poster JPG (set inline as the stage background by
+   HeroArtwork) is what visitors see. With an empty HERO_MEDIA config this CSS
+   is inert — PR #30 markup is unchanged. */
+.drip-motion-video { position:absolute; inset:0; z-index:0; width:100%; height:100%; object-fit:contain; object-position:center; border-radius:50%; }
+@media (prefers-reduced-motion: reduce) { .drip-motion-video { display:none; } }
+@media (max-width: 760px) { .drip-motion-video { display:none; } }

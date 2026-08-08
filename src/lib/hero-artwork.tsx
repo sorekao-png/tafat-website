@@ -1,36 +1,34 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Hero artwork media layer (TAFAT homepage, "Drip of Discovery" hero).
  *
- * Why this exists: the artwork in the hero is currently a flat inline SVG
- * (PR #30). The owner approved the structural prototype but rejected the flat
- * artwork and will upload a cinematic asset separately (optimized WebM/MP4 +
- * poster, or an animated image/sequence). This component makes the artwork
- * slot *swappable* without touching the approved structure:
+ * Simplified per owner report (preview showed only a static poster/ripple):
+ * the desktop hero is now ONE plain HTML5 <video> element — no separate
+ * poster <img> layer, no opacity/display/z-index switching, no idle-callback,
+ * no IntersectionObserver, no delayed mount, no video-state machine.
  *
  *   - All hero copy, CTAs and the search box stay live HTML in src/routes/index.tsx.
  *   - The whole decorative stage is aria-hidden (screen readers never see it).
- *   - A poster paints immediately: the inline SVG today, or the owner's poster
- *     image once HERO_MEDIA.poster is set. The poster never waits for motion.
- *   - Motion (video) mounts immediately after the initial client render — no
- *     idle-callback or in-view deferral (owner spec: the desktop sequence must
- *     run automatically, right away). The poster <img> still owns the first
- *     paint (eager + fetchPriority=high) and sits beneath the video; once the
- *     video reports `playing`, the poster is hidden so there is no double paint,
- *     and on video error the video element is removed so the poster is the
- *     visible fallback.
- *   - prefers-reduced-motion -> poster only (JS gate below + CSS belt-and-braces
- *     in app.css).
- *   - <=760px viewports -> poster only (or HERO_MEDIA.mobileImage when set).
- *     Desktop widths above 760px always get the video (a moderately narrow
- *     desktop is NOT treated as mobile).
- *   - The stage keeps aspect-ratio 560/470 and every media layer uses
+ *   - The video carries its own `poster` attribute (the owner-approved JPG):
+ *     the browser paints the poster immediately and swaps to live frames as
+ *     soon as data is ready — no JS involved in that handoff.
+ *   - Source order: WebM first (preferred), MP4 second (autoplay fallback);
+ *     the browser falls back to the next <source> if the first can't decode.
+ *   - autoplay + muted + playsInline + preload="auto", NO loop, NO controls:
+ *     plays once from t=0 and holds the final frame at ended.
+ *   - Minimal JS: on mount, set currentTime=0 and call play(); a rejected
+ *     play() promise (autoplay policy) is swallowed and the poster attr stays
+ *     as the visible fallback. Nothing else.
+ *   - Mobile (<=760px) and prefers-reduced-motion: poster-only via pure CSS
+ *     (video display:none) — the poster is painted as the stage background,
+ *     so no separate poster element exists. No JS gates that can mis-fire.
+ *   - The stage keeps aspect-ratio 560/470 and the media layer uses
  *     object-fit: contain, so the central gold drop is never cropped
  *     (letterboxed, never clipped).
  *   - No external dependency. With HERO_MEDIA empty the rendered markup is
- *     identical to PR #30 (inline SVG fallback poster). The owner-approved
- *     Kling 3 Omni production package (WebM/MP4 + JPG poster) is wired below —
+ *     the PR #30 inline SVG fallback (DripArtSvg). The owner-approved Kling 3
+ *     Omni production package (WebM/MP4 + JPG poster) is wired below —
  *     preview chain only, nothing merges to production main.
  */
 
@@ -72,7 +70,13 @@ export const HERO_MEDIA: HeroMediaConfig = {
 
 export type HeroMotionMode = "none" | "video" | "animatedImage" | "frames";
 
-/** Pure decision: which motion source (if any) should run, given the environment. */
+/**
+ * Pure decision: which motion source (if any) the CURRENT config maps to,
+ * given the environment. The simplified component renders only the video
+ * source (or the SVG fallback); mobile and reduced-motion poster-only is
+ * enforced by CSS. This function documents/keeps the config policy and is
+ * covered by tests.
+ */
 export function resolveHeroMotion(
   media: HeroMediaConfig,
   env: { reducedMotion: boolean; isMobile: boolean },
@@ -99,52 +103,29 @@ function DripArtSvg() {
   );
 }
 
-/** Poster slot: paints on first render. `<picture>` picks the mobile image on small screens. */
-function HeroPoster() {
-  const { poster, mobileImage } = HERO_MEDIA;
-  if (!poster) return <DripArtSvg />;
-  return (
-    <picture className="drip-poster">
-      {mobileImage && <source media="(max-width: 760px)" srcSet={mobileImage} />}
-      <img src={poster} alt="" width={1920} height={1080} loading="eager" fetchPriority="high" decoding="async" />
-    </picture>
-  );
-}
-
 /**
- * Motion layer: only rendered once mounted (environment resolved + motion
- * allowed — desktop, no reduced motion). Playback semantics per owner spec:
- * muted autoplay, playsinline, no controls, NO loop — plays once from t=0 and
- * holds the final frame at `ended`. The poster <img> beneath is the immediate
- * paint and the failure fallback.
+ * The one-and-only motion element: a plain HTML5 video that occupies the
+ * right-hand hero. `poster` attr paints the owner-approved frame immediately;
+ * the browser swaps to live frames when ready. WebM first, MP4 fallback.
+ * No loop: plays once from t=0 and holds the final frame at ended.
  */
-function HeroVideo({ onStateChange }: { onStateChange: (s: HeroVideoState) => void }) {
+function HeroVideo() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Owner spec: explicitly set currentTime = 0 before calling play(), and
-  // swallow a rejected play() promise so an autoplay block (or slow data)
-  // never surfaces as an unhandled error — the poster simply stays visible.
+  // Minimal playback bootstrap: ensure we start at t=0 and request play().
+  // A rejected promise (autoplay policy, slow data) is swallowed — the
+  // `poster` attribute stays visible as the graceful fallback.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    let cancelled = false;
     try {
       v.currentTime = 0;
     } catch {
-      // Media not ready yet; play() below (or the canplay retry) resets it.
+      // Media not ready yet; autoplay below (or the browser's own autoplay)
+      // starts from t=0 anyway.
     }
-    const tryPlay = () => {
-      if (cancelled || !v.paused) return;
-      const p = v.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    };
-    tryPlay();
-    // If play() ran before enough data was buffered, retry once data is ready.
-    v.addEventListener("canplay", tryPlay);
-    return () => {
-      cancelled = true;
-      v.removeEventListener("canplay", tryPlay);
-    };
+    const p = v.play();
+    if (p && typeof p.catch === "function") p.catch(() => {});
   }, []);
 
   return (
@@ -155,11 +136,9 @@ function HeroVideo({ onStateChange }: { onStateChange: (s: HeroVideoState) => vo
       muted
       playsInline
       preload="auto"
-      poster={HERO_MEDIA.poster}
+      poster={HERO_MEDIA.poster || undefined}
       aria-hidden="true"
       tabIndex={-1}
-      onPlaying={() => onStateChange("playing")}
-      onError={() => onStateChange("error")}
     >
       {HERO_MEDIA.video.webm && <source src={HERO_MEDIA.video.webm} type="video/webm" />}
       {HERO_MEDIA.video.mp4 && <source src={HERO_MEDIA.video.mp4} type="video/mp4" />}
@@ -167,102 +146,36 @@ function HeroVideo({ onStateChange }: { onStateChange: (s: HeroVideoState) => vo
   );
 }
 
-function HeroMotion({ mode, onVideoState }: { mode: Exclude<HeroMotionMode, "none">; onVideoState: (s: HeroVideoState) => void }) {
-  if (mode === "video") {
-    return (
-      <div className="drip-motion">
-        <HeroVideo onStateChange={onVideoState} />
-      </div>
-    );
-  }
-  if (mode === "animatedImage") {
-    return (
-      <div className="drip-motion">
-        <img className="drip-motion-img" src={HERO_MEDIA.animatedImage} alt="" loading="lazy" decoding="async" />
-      </div>
-    );
-  }
-  return (
-    <div className="drip-motion">
-      <HeroFrameSequence frames={HERO_MEDIA.frames} />
-    </div>
-  );
-}
-
-/** JS-driven image sequence (~30fps). Last-resort motion source. */
-function HeroFrameSequence({ frames }: { frames: HeroFrameSequence }) {
-  const [frame, setFrame] = useState(0);
-  useEffect(() => {
-    if (frames.count <= 1) return;
-    let raf = 0;
-    let last = 0;
-    const step = (now: number) => {
-      raf = requestAnimationFrame(step);
-      if (now - last >= 33) {
-        setFrame((current) => (current + 1) % frames.count);
-        last = now;
-      }
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [frames.count]);
-  return (
-    <img
-      className="drip-motion-seq"
-      src={`${frames.base}${String(frame).padStart(3, "0")}.${frames.ext}`}
-      alt=""
-      loading="lazy"
-      decoding="async"
-    />
-  );
-}
-
-export type HeroVideoState = "idle" | "playing" | "error";
-
 /**
- * The decorative hero stage. Replaces the inline `.drip-stage` block in
- * index.tsx; renders PR #30's exact markup when HERO_MEDIA is empty.
+ * The decorative hero stage. Desktop: one video (poster attr until first
+ * frame). Mobile / reduced-motion: poster-only via CSS (video display:none;
+ * the poster JPG is the stage background so no separate poster element
+ * exists). Empty HERO_MEDIA -> PR #30's inline SVG.
  */
 export function HeroArtwork() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [videoState, setVideoState] = useState<HeroVideoState>("idle");
-
-  // Client-only environment detection. SSR and the first client render both
-  // start with motion disabled, so server/client markup always matches.
-  // Once the environment is known, the motion layer mounts immediately — no
-  // idle-callback or in-view deferral (owner spec: automatic desktop sequence).
-  useEffect(() => {
-    const mqReduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const mqMobile = window.matchMedia("(max-width: 760px)");
-    const update = () => {
-      const reduced = mqReduced.matches;
-      const mobile = mqMobile.matches;
-      setPrefersReducedMotion(reduced);
-      setIsMobile(mobile);
-      setMounted(resolveHeroMotion(HERO_MEDIA, { reducedMotion: reduced, isMobile: mobile }) !== "none");
-    };
-    update();
-    mqReduced.addEventListener("change", update);
-    mqMobile.addEventListener("change", update);
-    return () => {
-      mqReduced.removeEventListener("change", update);
-      mqMobile.removeEventListener("change", update);
-    };
-  }, []);
-
-  const motionMode = resolveHeroMotion(HERO_MEDIA, { reducedMotion: prefersReducedMotion, isMobile });
-  const motionReady = motionMode !== "none";
+  const hasVideo = Boolean(HERO_MEDIA.video.webm || HERO_MEDIA.video.mp4);
+  const hasPoster = Boolean(HERO_MEDIA.poster);
 
   return (
-    <div className="drip-stage" aria-hidden="true" data-video-state={videoState}>
+    <div
+      className="drip-stage"
+      aria-hidden="true"
+      style={
+        hasPoster
+          ? {
+              backgroundImage: `radial-gradient(ellipse at center, #fffef9 0 33%, #eef1e8 73%, transparent 74%), url("${HERO_MEDIA.poster}")`,
+              backgroundSize: "auto, contain",
+              backgroundPosition: "center, center",
+              backgroundRepeat: "no-repeat, no-repeat",
+            }
+          : undefined
+      }
+    >
       <span className="drip-fragment fragment-one">EVIDENCE</span>
       <span className="drip-fragment fragment-two">QUALITY</span>
       <span className="drip-fragment fragment-three">VALUE</span>
       <span className="drip-fragment fragment-four">COMPARE</span>
-      <HeroPoster />
-      {motionReady && mounted && <HeroMotion mode={motionMode} onVideoState={setVideoState} />}
+      {hasVideo ? <HeroVideo /> : hasPoster ? null : <DripArtSvg />}
     </div>
   );
 }

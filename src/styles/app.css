@@ -862,3 +862,31 @@ a.topic-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); 
 @media (max-width: 600px) {
   .guide-product-card { grid-template-columns: 1fr; }
 }
+
+/* Drip of Discovery preview hero */
+.hero-drip { position:relative; display:grid; grid-template-columns:minmax(0, .9fr) minmax(380px, 1.1fr); gap:36px; align-items:center; text-align:left; min-height:650px; padding-top:56px; padding-bottom:56px; overflow:hidden; }
+.hero-drip-copy { position:relative; z-index:2; max-width:520px; }
+.hero-drip h1 { font-size:clamp(48px, 6vw, 78px); letter-spacing:-3px; }
+.hero-drip-subhead { margin-top:22px; color:var(--ink-soft); font-family:var(--font-reader); font-size:clamp(22px,2.4vw,30px); line-height:1.2; }
+.hero-drip-supporting { margin-top:20px; max-width:470px; color:var(--muted); font-size:16px; line-height:1.7; }
+.hero-drip .hero-actions { justify-content:flex-start; margin:30px 0 18px; }
+.hero-drip-line { color:var(--sage-deep); font-size:12px; font-weight:600; letter-spacing:.08em; }
+.drip-stage { position:relative; width:100%; max-width:590px; aspect-ratio:560/470; justify-self:end; background:radial-gradient(ellipse at center, #fffef9 0 33%, #eef1e8 73%, transparent 74%); border-radius:50%; }
+.drip-art { width:100%; height:100%; overflow:visible; }
+.drip-drop { fill:var(--gold); filter:drop-shadow(0 8px 7px rgb(95 74 28 / .18)); transform-origin:280px 170px; animation:drip-fall 1.5s cubic-bezier(.22,1,.36,1) both; }
+.drip-ripple { fill:none; stroke:var(--gold); stroke-width:2; opacity:0; transform-origin:280px 314px; animation:drip-ripple 1.35s ease-out 1.15s both; }
+.drip-ripple-wide { stroke:var(--sage-mid); animation-delay:1.35s; }
+.drip-orbit { fill:none; stroke:var(--line); stroke-width:1; stroke-dasharray:3 9; animation:drip-settle .9s ease-out 1.9s both; transform-origin:280px 308px; }
+.drip-mark { fill:var(--ink); font:600 22px var(--font-sans); letter-spacing:3px; opacity:0; animation:drip-reveal .8s ease-out 1.7s both; }
+.drip-spark { fill:var(--gold); opacity:0; animation:drip-reveal .5s ease-out 1.8s both; }
+.drip-motif { fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; opacity:0; animation:drip-reveal .8s ease-out 1.9s both; }
+.motif-left { stroke:var(--sage-deep); }.motif-right { stroke:var(--sky-mid); animation-delay:2.05s; }
+.drip-fragment { position:absolute; z-index:1; color:var(--muted); font-size:9px; letter-spacing:1.7px; opacity:0; animation:drip-fragment 1.2s ease-out both; }
+.fragment-one { left:13%; top:28%; color:var(--sage-deep); animation-delay:.65s; }.fragment-two { right:9%; top:32%; color:var(--sky-mid); animation-delay:.8s; }.fragment-three { left:17%; bottom:23%; color:var(--clay); animation-delay:1s; }.fragment-four { right:12%; bottom:22%; color:var(--lilac-mid); animation-delay:1.15s; }
+@keyframes drip-fall { from { opacity:0; transform:translateY(-80px) scale(.82); } 20% { opacity:1; } 78% { transform:translateY(12px) scale(1); } to { opacity:1; transform:translateY(0) scale(.82); } }
+@keyframes drip-ripple { from { opacity:.65; transform:scale(.2); } to { opacity:0; transform:scale(1); } }
+@keyframes drip-reveal { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:none; } }
+@keyframes drip-fragment { 0% { opacity:0; filter:blur(3px); transform:translateY(5px); } 60% { opacity:.65; filter:blur(0); } 100% { opacity:.38; transform:none; } }
+@keyframes drip-settle { from { opacity:0; transform:scale(.93); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .drip-drop,.drip-ripple,.drip-ripple-wide,.drip-orbit,.drip-mark,.drip-spark,.drip-motif,.drip-fragment { animation:none; opacity:1; filter:none; transform:none; } .drip-drop { transform:scale(.82); } .drip-ripple { opacity:.28; } .drip-fragment { opacity:.38; } }
+@media (max-width:760px) { .hero-drip { display:block; min-height:0; padding-top:58px; padding-bottom:58px; } .hero-drip-copy { max-width:none; } .hero-drip h1 { font-size:clamp(46px, 14vw, 64px); } .hero-drip-subhead { font-size:23px; max-width:460px; } .hero-drip-supporting { font-size:15px; } .hero-drip .hero-actions { margin-top:24px; } .drip-stage { margin:25px auto 0; width:100%; max-width:480px; } .drip-fragment { font-size:8px; } .fragment-one { left:14%; top:31%; }.fragment-two { right:13%; top:35%; }.fragment-three { left:21%; bottom:22%; }.fragment-four { display:none; } .drip-motif { transform:scale(.92); transform-origin:center; } }

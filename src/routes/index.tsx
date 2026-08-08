@@ -96,7 +96,21 @@ function Home() {
   return <div className="site-shell">
     <header className="nav wrap"><a className="brand" href="/" aria-label="Tafat home"><span className="brand-mark">t</span><span>tafat</span></a><nav><a href="#discover">Discover</a><a href="/health-wellness">Health &amp; Wellness</a><a href="/art-creative-studio">Art &amp; Creative Studio</a><a href={`#${PHILOSOPHY_SECTION_ID}`}>Our approach</a><a href="#stay-in-loop">Stay in the loop</a></nav><a className="nav-pill" href="#stay-in-loop">Sign in / join</a></header>
     <main>
-      <section className="hero wrap"><div className="eyebrow"><span className="spark">✦</span> Curated with care</div><h1>{HOME_HEADLINE_PARTS[0]}<br /><em>{HOME_HEADLINE_PARTS[1]}</em></h1>{HERO_SUBHEADINGS.map((line) => <p className="hero-copy" key={line}>{line}</p>)}<div className="hero-actions">{HERO_ACTIONS.map((action) => <a className={action.href.startsWith("#") ? "secondary-button" : "primary-button"} key={action.label} href={action.href}>{action.label}</a>)}</div><div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, topic, benefit, or keyword..." aria-label="Search products" />{query && <button onClick={() => setQuery("")} aria-label="Clear search">×</button>}<kbd>⌘ K</kbd></div><div className="quick-links"><span>Try:</span>{["focus", "nutrition", "templates", "movement"].map((tag) => <button key={tag} onClick={() => setQuery(tag)}>{tag}</button>)}</div></section>
+      <section className="hero hero-drip wrap" aria-labelledby="drip-title">
+        <div className="hero-drip-copy">
+          <p className="eyebrow">TAFAT EVIDENCE LIBRARY</p>
+          <h1 id="drip-title">Clarity, distilled.</h1>
+          <p className="hero-drip-subhead">Evidence, quality and value gathered into choices worth your time.</p>
+          <p className="hero-drip-supporting">We search through the noise, compare what matters, and explain why something earns consideration before you buy.</p>
+          <div className="hero-actions"><a className="primary-button" href="#discover">Explore TAFAT</a><a className="secondary-button" href="#how-we-review">How We Evaluate</a></div>
+          <p className="hero-drip-line">Research first. Recommendation second.</p>
+        </div>
+        <div className="drip-stage" aria-hidden="true">
+          <span className="drip-fragment fragment-one">EVIDENCE</span><span className="drip-fragment fragment-two">QUALITY</span><span className="drip-fragment fragment-three">VALUE</span><span className="drip-fragment fragment-four">COMPARE</span>
+          <svg className="drip-art" viewBox="0 0 560 470" role="presentation"><path className="drip-motif motif-left" d="M72 176h76m-38-38v76M92 346c18-22 40-22 58 0-18 22-40 22-58 0Z"/><path className="drip-motif motif-right" d="M425 142c18-20 42-20 60 0-18 20-42 20-60 0Zm10 178h58m-29-29v58"/><circle className="drip-orbit" cx="280" cy="308" r="112"/><ellipse className="drip-ripple" cx="280" cy="314" rx="142" ry="29"/><path className="drip-drop" d="M280 86c-18 29-34 49-34 68a34 34 0 0 0 68 0c0-19-16-39-34-68Z"/><text className="drip-mark" x="280" y="318" textAnchor="middle">TAFAT</text><circle className="drip-spark" cx="280" cy="314" r="4"/></svg>
+        </div>
+        <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, topic, benefit, or keyword..." aria-label="Search products" />{query && <button onClick={() => setQuery("")} aria-label="Clear search">×</button>}<kbd>⌘ K</kbd></div><div className="quick-links"><span>Try:</span>{["focus", "nutrition", "templates", "movement"].map((tag) => <button key={tag} onClick={() => setQuery(tag)}>{tag}</button>)}</div>
+      </section>
       <section id={EDITORIAL_SECTION_ID} className="editorial-standard" aria-labelledby="editorial-standard-title">
         <div className="wrap">
           <div className="es-illustration" aria-hidden="true"><EditorialStandardIllustration /></div>

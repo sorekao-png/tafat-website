@@ -893,9 +893,9 @@ a.topic-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); 
 
 /* Hero media layer (feat/hero-media-layer): poster-first, deferred motion.
    With an empty HERO_MEDIA config this CSS is inert — PR #30 markup is unchanged.
-   Pause state (owner, 2026-08-08): the cinematic poster is NOT wired — the
-   16:9 cover crop below is intentionally reverted to contain/center until the
-   next cinematic asset is delivered and approved. */
+   The owner-approved Kling 3 Omni package (16:9 WebM/MP4 + JPG poster) is wired
+   on this preview branch: media letterboxes with contain/center (never crops the
+   gold drop), plays once, and the poster <img> beneath is the failure fallback. */
 .drip-poster, .drip-motion { position:absolute; inset:0; z-index:0; width:100%; height:100%; border-radius:50%; }
 .drip-poster img, .drip-motion-video, .drip-motion-img, .drip-motion-seq { width:100%; height:100%; object-fit:contain; object-position:center; }
 /* Motion paints above the poster but below the HTML fragments (z-index:1). */

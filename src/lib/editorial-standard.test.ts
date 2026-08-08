@@ -93,7 +93,7 @@ describe("Premium editorial standard copy", () => {
 
 describe("Homepage premium section", () => {
   test("section sits immediately below the hero and above the discover catalog", () => {
-    const hero = INDEX.indexOf('className="hero wrap"');
+    const hero = INDEX.indexOf('className="hero hero-drip wrap"');
     const section = INDEX.indexOf(`id={EDITORIAL_SECTION_ID} className="editorial-standard"`);
     const discover = INDEX.indexOf('id="discover"');
     expect(hero).toBeGreaterThanOrEqual(0);

@@ -892,12 +892,19 @@ a.topic-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); 
 @media (max-width:760px) { .hero-drip { display:block; min-height:0; padding-top:58px; padding-bottom:58px; } .hero-drip-copy { max-width:none; } .hero-drip h1 { font-size:clamp(46px, 14vw, 64px); } .hero-drip-subhead { font-size:23px; max-width:460px; } .hero-drip-supporting { font-size:15px; } .hero-drip .hero-actions { margin-top:24px; } .drip-stage { margin:25px auto 0; width:100%; max-width:480px; } .drip-fragment { font-size:8px; } .fragment-one { left:14%; top:31%; }.fragment-two { right:13%; top:35%; }.fragment-three { left:21%; bottom:22%; }.fragment-four { display:none; } .drip-motif { transform:scale(.92); transform-origin:center; } }
 
 /* Hero media layer (feat/hero-media-layer): poster-first, deferred motion.
-   With an empty HERO_MEDIA config this CSS is inert — PR #30 markup is unchanged.
-   Pause state (owner, 2026-08-08): the cinematic poster is NOT wired — the
-   16:9 cover crop below is intentionally reverted to contain/center until the
-   next cinematic asset is delivered and approved. */
+   Poster config is live (feat/cinematic-poster-preview): the 16:9 cinematic
+   poster fills the 560:470 stage with object-fit: cover — the horizontal crop
+   is deliberate. object-position: 62% 50% keeps the gold drop/ripple (poster
+   x ~75-100%, centroid ~83%) fully inside the elliptical stage on the right
+   (stage x ~76-100%) while the left dark negative space (poster x ~37-60%)
+   stays behind the EVIDENCE/VALUE fragments. The vertical axis is never
+   cropped (cover fits the stage height exactly). Motion layers keep
+   object-fit: contain (approved PR #31 guarantee: never crop the gold drop)
+   until a video is actually configured — when it is, it must adopt the same
+   cover crop at the same position so motion matches the poster frame. */
 .drip-poster, .drip-motion { position:absolute; inset:0; z-index:0; width:100%; height:100%; border-radius:50%; }
-.drip-poster img, .drip-motion-video, .drip-motion-img, .drip-motion-seq { width:100%; height:100%; object-fit:contain; object-position:center; }
+.drip-poster img { width:100%; height:100%; object-fit:cover; object-position:62% 50%; }
+.drip-motion-video, .drip-motion-img, .drip-motion-seq { width:100%; height:100%; object-fit:contain; object-position:center; }
 /* Motion paints above the poster but below the HTML fragments (z-index:1). */
 .drip-motion { z-index:0; }
 /* Belt-and-braces: even if the JS gate ever mis-fires, motion never runs for

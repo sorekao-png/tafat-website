@@ -16,6 +16,7 @@ import {
 } from "../lib/home-content";
 import { HOME_CATEGORIES } from "../lib/categories";
 import { ConsentBanner } from "../lib/consent-banner";
+import { HeroArtwork } from "../lib/hero-artwork";
 import {
   EDITORIAL_INTRO,
   EDITORIAL_PRINCIPLES,
@@ -105,10 +106,7 @@ function Home() {
           <div className="hero-actions"><a className="primary-button" href="#discover">Explore TAFAT</a><a className="secondary-button" href="#how-we-review">How We Evaluate</a></div>
           <p className="hero-drip-line">Research first. Recommendation second.</p>
         </div>
-        <div className="drip-stage" aria-hidden="true">
-          <span className="drip-fragment fragment-one">EVIDENCE</span><span className="drip-fragment fragment-two">QUALITY</span><span className="drip-fragment fragment-three">VALUE</span><span className="drip-fragment fragment-four">COMPARE</span>
-          <svg className="drip-art" viewBox="0 0 560 470" role="presentation"><path className="drip-motif motif-left" d="M72 176h76m-38-38v76M92 346c18-22 40-22 58 0-18 22-40 22-58 0Z"/><path className="drip-motif motif-right" d="M425 142c18-20 42-20 60 0-18 20-42 20-60 0Zm10 178h58m-29-29v58"/><circle className="drip-orbit" cx="280" cy="308" r="112"/><ellipse className="drip-ripple" cx="280" cy="314" rx="142" ry="29"/><path className="drip-drop" d="M280 86c-18 29-34 49-34 68a34 34 0 0 0 68 0c0-19-16-39-34-68Z"/><text className="drip-mark" x="280" y="318" textAnchor="middle">TAFAT</text><circle className="drip-spark" cx="280" cy="314" r="4"/></svg>
-        </div>
+        <HeroArtwork />
         <div className="search-box"><span aria-hidden="true">⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name, topic, benefit, or keyword..." aria-label="Search products" />{query && <button onClick={() => setQuery("")} aria-label="Clear search">×</button>}<kbd>⌘ K</kbd></div><div className="quick-links"><span>Try:</span>{["focus", "nutrition", "templates", "movement"].map((tag) => <button key={tag} onClick={() => setQuery(tag)}>{tag}</button>)}</div>
       </section>
       <section id={EDITORIAL_SECTION_ID} className="editorial-standard" aria-labelledby="editorial-standard-title">

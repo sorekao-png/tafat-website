@@ -135,6 +135,7 @@ function HeroVideo() {
       autoPlay
       muted
       playsInline
+      loop
       preload="auto"
       poster={HERO_MEDIA.poster || undefined}
       aria-hidden="true"

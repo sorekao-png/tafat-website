@@ -21,11 +21,13 @@ import { useEffect, useRef, useState } from "react";
  *   - prefers-reduced-motion -> poster only (JS gate below + CSS belt-and-braces
  *     in app.css).
  *   - <=760px viewports -> poster only (or HERO_MEDIA.mobileImage when set).
- *   - The stage keeps aspect-ratio 560/470 and every media layer uses
- *     object-fit: contain, so the central gold drop is never cropped
- *     (letterboxed, never clipped).
- *   - No external dependency. No asset files are added in this PR: with an
- *     empty HERO_MEDIA the rendered markup is identical to PR #30.
+ *   - The stage keeps aspect-ratio 560/470. The poster (a 16:9 cinematic frame)
+ *     deliberately fills the elliptical stage with object-fit: cover and
+ *     object-position 62% 50% — the horizontal crop keeps the gold drop/ripple
+ *     on the right and the dark negative space on the left (see app.css).
+ *     Motion layers keep object-fit: contain so the drop is never cropped.
+ *   - No external dependency: the poster is a static file served from the site
+ *     itself (public/hero/hero-poster.webp).
  */
 
 export type HeroVideoSources = { webm: string; mp4: string };
@@ -45,14 +47,15 @@ export type HeroMediaConfig = {
 };
 
 /**
- * SINGLE SWAP POINT — fill these paths when the owner delivers the cinematic
- * asset (place files under public/ and reference them from the site root, e.g.
- * "/hero/hero.webm"). Leave everything empty to keep the PR #30 prototype
- * exactly as approved. See /home/team/shared/hero-media-layer-design.md for the
- * full asset spec (frame 560:470, gold drop centered, no baked text).
+ * SINGLE SWAP POINT — the owner-approved cinematic poster (16:9, left dark
+ * negative space, gold drop/ripple on the right) is wired in as the static
+ * poster. Motion is NOT configured yet: video/animatedImage/frames stay empty
+ * (the future WebM/MP4 slot is intact but unfilled — progressive enhancement
+ * only). To swap back to the PR #30 prototype, empty `poster` again.
+ * See /home/team/shared/hero-media-layer-design.md for the full asset spec.
  */
 export const HERO_MEDIA: HeroMediaConfig = {
-  poster: "",
+  poster: "/hero/hero-poster.webp",
   video: { webm: "", mp4: "" },
   animatedImage: "",
   frames: { base: "", count: 0, ext: "webp" },
@@ -95,7 +98,7 @@ function HeroPoster() {
   return (
     <picture className="drip-poster">
       {mobileImage && <source media="(max-width: 760px)" srcSet={mobileImage} />}
-      <img src={poster} alt="" width={560} height={470} loading="eager" fetchPriority="high" decoding="async" />
+      <img src={poster} alt="" width={1200} height={675} loading="eager" fetchPriority="high" decoding="async" />
     </picture>
   );
 }
